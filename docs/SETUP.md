@@ -24,7 +24,7 @@ Keep a copy in your password manager: you'll need it for step 9.
 
 ## 3. Supabase: database
 
-1. Create a project in an **EU region** (e.g. Frankfurt) or London, for GDPR / UK GDPR.
+1. Create a project in **London (eu-west-2)**, matching the site's function region (`lhr1` in `vercel.json`), for GDPR / UK GDPR and low latency. If you pick Frankfurt instead, change `vercel.json` `regions` to `fra1`.
 2. **SQL Editor** → run, in this order:
    - `supabase/migrations/20261022000000_init.sql`
    - `supabase/migrations/20261022010000_lifecycle.sql`
