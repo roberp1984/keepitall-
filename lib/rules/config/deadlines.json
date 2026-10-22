@@ -1,0 +1,23 @@
+{
+  "$comment": "Limitation periods for bringing a compensation claim, by jurisdiction. EVERY entry must be checked by a human (with source) before launch. Entries with verified=false are never shown to users. startsFrom: flight_date = the period runs from the flight date; end_of_year = from 31 December of the year of the flight.",
+  "warnWithinDays": 180,
+  "jurisdictions": {
+    "GB-ENG": { "name": "England and Wales", "years": 6, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "Limitation Act 1980." },
+    "GB-SCT": { "name": "Scotland", "years": 5, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "Prescription and Limitation (Scotland) Act 1973." },
+    "GB-NIR": { "name": "Northern Ireland", "years": 6, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "IE": { "name": "Ireland", "years": 6, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "DE": { "name": "Germany", "years": 3, "startsFrom": "end_of_year", "verified": false, "source": null, "notes": "Regular limitation period, BGB §§195, 199." },
+    "FR": { "name": "France", "years": 5, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "ES": { "name": "Spain", "years": 5, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "IT": { "name": "Italy", "years": 10, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "Disputed; some sources state a shorter period." },
+    "PT": { "name": "Portugal", "years": 3, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "NL": { "name": "Netherlands", "years": 2, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "Disputed; check current case law." },
+    "BE": { "name": "Belgium", "years": 1, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "AT": { "name": "Austria", "years": 3, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "PL": { "name": "Poland", "years": 1, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "DK": { "name": "Denmark", "years": 3, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "SE": { "name": "Sweden", "years": 10, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "NO": { "name": "Norway", "years": 3, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
+    "CH": { "name": "Switzerland", "years": 10, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" }
+  }
+}

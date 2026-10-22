@@ -1,0 +1,18 @@
+{
+  "$comment": "Maps the reason the airline gave to how strong the passenger's case is. strong = generally NOT extraordinary; disputed = depends on facts; weak = usually extraordinary. Case references are for legal review and letter drafting; verify before quoting them to users.",
+  "reasons": {
+    "technical": { "strength": "strong", "rationale": "Technical problems arising from normal operation and maintenance are generally not extraordinary circumstances.", "refs": ["C-549/07 Wallentin-Hermann", "C-257/14 van der Lans"] },
+    "crew": { "strength": "strong", "rationale": "Crew shortages, scheduling problems and crew illness are part of the airline's normal activity.", "refs": ["C-156/22 TAP Portugal"] },
+    "strike_airline_staff": { "strength": "strong", "rationale": "Strikes by the airline's own staff are generally not extraordinary circumstances.", "refs": ["C-195/17 Krüsemann", "C-28/20 Airhelp v SAS"] },
+    "none": { "strength": "strong", "rationale": "No reason was given. The airline must prove extraordinary circumstances to refuse compensation.", "refs": [] },
+    "knock_on": { "strength": "disputed", "rationale": "A delay caused by an earlier flight only excuses the airline if the earlier disruption was itself extraordinary.", "refs": ["C-74/19 LE v TAP"] },
+    "strike_unknown": { "strength": "disputed", "rationale": "Depends on who was striking: the airline's own staff (usually claimable) or third parties such as air traffic control or airport staff (usually not).", "refs": [] },
+    "other": { "strength": "disputed", "rationale": "The outcome depends on the specific facts.", "refs": [] },
+    "weather": { "strength": "weak", "rationale": "Severe weather is usually extraordinary, although it can be disputed if other flights operated normally.", "refs": [] },
+    "atc": { "strength": "weak", "rationale": "Air traffic control restrictions are usually extraordinary circumstances.", "refs": [] },
+    "security": { "strength": "weak", "rationale": "Security risks are usually extraordinary circumstances.", "refs": [] },
+    "strike_third_party": { "strength": "weak", "rationale": "Strikes by third parties (air traffic control, airport staff) are usually extraordinary circumstances.", "refs": [] },
+    "bird_strike": { "strength": "weak", "rationale": "A bird strike is usually an extraordinary circumstance.", "refs": ["C-315/15 Pešková"] },
+    "medical_emergency": { "strength": "weak", "rationale": "A passenger medical emergency or disruptive passenger is usually an extraordinary circumstance.", "refs": ["C-74/19 LE v TAP"] }
+  }
+}

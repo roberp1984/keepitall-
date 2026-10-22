@@ -1,0 +1,80 @@
+{
+  "$comment": "Versioned compensation rulesets. Selection is by regime + flight date (local scheduled departure date, YYYY-MM-DD, inclusive bounds). To add the EU261 reform, append a new version with effectiveFrom set and close the previous one with effectiveTo.",
+  "rulesets": [
+    {
+      "regime": "EU261",
+      "version": "ec-261-2004-pre-brexit",
+      "regulation": "Regulation (EC) No 261/2004",
+      "effectiveFrom": "2005-02-17",
+      "effectiveTo": "2020-12-31",
+      "currency": "EUR",
+      "territory": ["EU27", "EU_OUTERMOST", "EEA_EFTA", "CH", "UK"],
+      "inboundCarrierGroups": ["EU27", "EU_OUTERMOST", "EEA_EFTA", "CH", "UK"],
+      "bands": [
+        { "id": "short", "maxKm": 1500, "amount": 250, "rerouteReductionLimitMinutes": 120 },
+        { "id": "medium", "maxKm": 3500, "amount": 400, "rerouteReductionLimitMinutes": 180 },
+        { "id": "long", "maxKm": null, "amount": 600, "rerouteReductionLimitMinutes": 240 }
+      ],
+      "intraTerritoryOverride": { "aboveKm": 1500, "band": "medium" },
+      "reductionPercent": 50,
+      "delay": { "minArrivalDelayMinutes": 180, "reductionBands": ["long"] },
+      "cancellation": {
+        "noCompensationIfNoticeDaysAtLeast": 14,
+        "reroutingExemptions": [
+          { "noticeDaysFrom": 7, "noticeDaysBelow": 14, "maxDepartureEarlierMinutes": 120, "arrivalLaterBelowMinutes": 240 },
+          { "noticeDaysFrom": 0, "noticeDaysBelow": 7, "maxDepartureEarlierMinutes": 60, "arrivalLaterBelowMinutes": 120 }
+        ]
+      }
+    },
+    {
+      "regime": "EU261",
+      "version": "ec-261-2004",
+      "regulation": "Regulation (EC) No 261/2004",
+      "effectiveFrom": "2021-01-01",
+      "effectiveTo": null,
+      "currency": "EUR",
+      "territory": ["EU27", "EU_OUTERMOST", "EEA_EFTA", "CH"],
+      "inboundCarrierGroups": ["EU27", "EU_OUTERMOST", "EEA_EFTA", "CH"],
+      "bands": [
+        { "id": "short", "maxKm": 1500, "amount": 250, "rerouteReductionLimitMinutes": 120 },
+        { "id": "medium", "maxKm": 3500, "amount": 400, "rerouteReductionLimitMinutes": 180 },
+        { "id": "long", "maxKm": null, "amount": 600, "rerouteReductionLimitMinutes": 240 }
+      ],
+      "intraTerritoryOverride": { "aboveKm": 1500, "band": "medium" },
+      "reductionPercent": 50,
+      "delay": { "minArrivalDelayMinutes": 180, "reductionBands": ["long"] },
+      "cancellation": {
+        "noCompensationIfNoticeDaysAtLeast": 14,
+        "reroutingExemptions": [
+          { "noticeDaysFrom": 7, "noticeDaysBelow": 14, "maxDepartureEarlierMinutes": 120, "arrivalLaterBelowMinutes": 240 },
+          { "noticeDaysFrom": 0, "noticeDaysBelow": 7, "maxDepartureEarlierMinutes": 60, "arrivalLaterBelowMinutes": 120 }
+        ]
+      }
+    },
+    {
+      "regime": "UK261",
+      "version": "uk-261-retained-2021",
+      "regulation": "Regulation (EC) No 261/2004 as retained in UK law (UK261)",
+      "effectiveFrom": "2021-01-01",
+      "effectiveTo": null,
+      "currency": "GBP",
+      "territory": ["UK"],
+      "inboundCarrierGroups": ["UK", "EU27", "EU_OUTERMOST"],
+      "bands": [
+        { "id": "short", "maxKm": 1500, "amount": 220, "rerouteReductionLimitMinutes": 120 },
+        { "id": "medium", "maxKm": 3500, "amount": 350, "rerouteReductionLimitMinutes": 180 },
+        { "id": "long", "maxKm": null, "amount": 520, "rerouteReductionLimitMinutes": 240 }
+      ],
+      "intraTerritoryOverride": { "aboveKm": 1500, "band": "medium" },
+      "reductionPercent": 50,
+      "delay": { "minArrivalDelayMinutes": 180, "reductionBands": ["long"] },
+      "cancellation": {
+        "noCompensationIfNoticeDaysAtLeast": 14,
+        "reroutingExemptions": [
+          { "noticeDaysFrom": 7, "noticeDaysBelow": 14, "maxDepartureEarlierMinutes": 120, "arrivalLaterBelowMinutes": 240 },
+          { "noticeDaysFrom": 0, "noticeDaysBelow": 7, "maxDepartureEarlierMinutes": 60, "arrivalLaterBelowMinutes": 120 }
+        ]
+      }
+    }
+  ]
+}

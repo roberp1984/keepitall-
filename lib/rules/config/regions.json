@@ -1,0 +1,15 @@
+{
+  "$comment": "Country groups (ISO 3166-1 alpha-2, as used by OurAirports iso_country). Rulesets reference these groups by name. Airports listed in excludedAirports sit in a listed country but outside the territory where the regulation applies.",
+  "groups": {
+    "EU27": ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE"],
+    "EU_OUTERMOST": ["GP", "MQ", "GF", "RE", "YT", "MF"],
+    "EEA_EFTA": ["IS", "LI", "NO"],
+    "CH": ["CH"],
+    "UK": ["GB"]
+  },
+  "excludedAirports": {
+    "LYR": "Svalbard is outside the EEA",
+    "ECN": "Northern Cyprus: EU law suspended (Protocol 10 to the 2003 Act of Accession)",
+    "GEC": "Northern Cyprus: EU law suspended (Protocol 10 to the 2003 Act of Accession)"
+  }
+}
