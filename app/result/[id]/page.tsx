@@ -2,6 +2,7 @@ import { AlertTriangle, CheckCircle2, CircleSlash, FileText, Info, RotateCcw, XC
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { TrackOnMount } from "@/components/track";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,6 +41,8 @@ function label(iata: string): string {
 }
 
 async function Result({ id }: { id: string }) {
+  // Today's date (and the env-dependent checkout state) must be read per request, not at prerender.
+  await connection();
   const answers = decodeAnswers(id);
   const today = new Date().toISOString().slice(0, 10);
   const input = answers && toClaimInput(answers, today);
