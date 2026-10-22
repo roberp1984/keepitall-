@@ -12,6 +12,7 @@ import {
   formatMoney,
   joinNames,
   placeholderValues,
+  possessive,
   SYSTEM_PROMPT,
   templateClaimBody,
   validateAndFill,
@@ -35,6 +36,8 @@ describe("formatting", () => {
     expect(joinNames(["A"])).toBe("A");
     expect(joinNames(["A", "B"])).toBe("A and B");
     expect(joinNames(["A", "B", "C"])).toBe("A, B and C");
+    expect(possessive("Ryanair")).toBe("Ryanair's");
+    expect(possessive("British Airways")).toBe("British Airways'");
   });
 });
 

@@ -35,3 +35,8 @@ export function joinNames(names: string[]): string {
   if (names.length <= 1) return names.join("");
   return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 }
+
+/** "Ryanair's", "British Airways'" */
+export function possessive(name: string): string {
+  return /s$/i.test(name) ? `${name}'` : `${name}'s`;
+}

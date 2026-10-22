@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, CheckCircle2, CircleSlash, FileText, Info, RotateCcw, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleSlash, FileText, Info, RotateCcw, XCircle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,11 +6,13 @@ import { Suspense } from "react";
 import { TrackOnMount } from "@/components/track";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { CheckoutButton } from "@/components/checkout-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAirport } from "@/lib/airports";
 import { carrierName, toClaimInput } from "@/lib/check/claim-input";
 import { decodeAnswers } from "@/lib/check/token";
+import { checkoutEnabled } from "@/lib/env";
 import { presentAssessment, type ResultView } from "@/lib/result/view";
 import { assessClaim } from "@/lib/rules";
 import { cn } from "@/lib/utils";
@@ -76,7 +78,7 @@ async function Result({ id }: { id: string }) {
           ))}
         </ul>
       )}
-      {view.pack && <Paywall view={view} />}
+      {view.pack && <Paywall view={view} token={id} />}
       {view.alternatives.length > 0 && <Alternatives view={view} />}
       <Link href="/check" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full")}>
         <RotateCcw />
@@ -147,7 +149,7 @@ const PACK_CONTENTS = [
   "An escalation letter if the airline doesn't pay",
 ];
 
-function Paywall({ view }: { view: ResultView }) {
+function Paywall({ view, token }: { view: ResultView; token: string }) {
   return (
     <Card className="border-primary ring-1 ring-primary">
       <CardHeader>
@@ -166,11 +168,7 @@ function Paywall({ view }: { view: ResultView }) {
             </li>
           ))}
         </ul>
-        <Button size="lg" className="w-full" disabled>
-          Get your claim pack — {view.pack!.price}
-          <ArrowRight />
-        </Button>
-        <p className="text-center text-xs text-muted-foreground">Checkout opens soon.</p>
+        <CheckoutButton token={token} price={view.pack!.price} enabled={checkoutEnabled()} />
       </CardContent>
     </Card>
   );

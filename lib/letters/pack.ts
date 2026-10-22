@@ -4,6 +4,7 @@ import { DISCLAIMER } from "../legal";
 import { addDays } from "../rules/dates";
 import type { ScopeBasis } from "../rules/scope";
 import { draftClaimLetter, type DraftResult, type TextGenerator } from "./draft";
+import { possessive } from "./format";
 import { escalationLetter, replyToExtraordinaryCircumstances, replyToVoucherOffer } from "./templates";
 import type { ClaimFacts } from "./types";
 
@@ -30,11 +31,11 @@ export interface PackOptions {
 export function howToSend(f: ClaimFacts, airline: Airline | undefined, body: EnforcementBody | null, afterDays: number): string[] {
   const steps: string[] = [];
   if (airline?.verified && airline.claimFormUrl) {
-    steps.push(`Submit your claim using ${airline.name}'s compensation claim form: ${airline.claimFormUrl}. Paste the letter into the form or attach it as a PDF.`);
+    steps.push(`Submit your claim using ${possessive(airline.name)} compensation claim form: ${airline.claimFormUrl}. Paste the letter into the form or attach it as a PDF.`);
   } else if (airline?.verified && airline.claimsEmail) {
     steps.push(`Email the letter to ${airline.name} at ${airline.claimsEmail}, with the PDF attached.`);
   } else {
-    steps.push(`Find the compensation claim form on ${f.airline.name}'s official website (usually under Help, Refunds or Claims). Paste the letter into the form or attach it as a PDF.`);
+    steps.push(`Find the compensation claim form on ${possessive(f.airline.name)} official website (usually under Help, Refunds or Claims). Paste the letter into the form or attach it as a PDF.`);
   }
   steps.push("Attach your booking confirmation, boarding passes and any messages from the airline about the disruption.");
   steps.push("Keep a copy of everything you send and note the date.");

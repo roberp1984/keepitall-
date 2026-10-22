@@ -7,6 +7,6 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["lib/**/*.test.ts", "scripts/**/*.test.mts"],
+    include: ["lib/**/*.test.ts", "app/**/*.test.ts", "scripts/**/*.test.mts"],
   },
 });
