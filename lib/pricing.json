@@ -1,5 +1,5 @@
 {
-  "$comment": "Claim pack price by the currency of the claim (one-time, per claim).",
-  "EUR": 19,
-  "GBP": 17
+  "$comment": "Claim pack price by the currency of the claim. `currency` is what Lemon Squeezy actually charges: the store is in EUR, so UK261 claims are charged in EUR too. Keep in sync with the Lemon Squeezy variants (npm run setup:check verifies it).",
+  "EUR": { "amount": 19, "currency": "EUR" },
+  "GBP": { "amount": 18, "currency": "EUR" }
 }

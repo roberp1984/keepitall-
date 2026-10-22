@@ -1,6 +1,6 @@
 # KeepItAll
 
-Self-serve flight compensation claims under **EU261** and **UK261**. Passengers check their flight for free, then buy a one-off claim pack (€19 / £17) and send it to the airline themselves — keeping 100% of the payout instead of paying a claim company 25–35%.
+Self-serve flight compensation claims under **EU261** and **UK261**. Passengers check their flight for free, then buy a one-off claim pack (€19 for EU261 claims, €18 for UK261 claims) and send it to the airline themselves — keeping 100% of the payout instead of paying a claim company 25–35%.
 
 Product rules and scope live in [`CLAUDE.md`](./CLAUDE.md). The most important one: **eligibility and amounts are decided by deterministic code in `lib/rules/`, never by the LLM.**
 
@@ -37,7 +37,7 @@ CI (`.github/workflows/ci.yml`) runs all four checks on every push.
 |---|---|---|
 | Site | `NEXT_PUBLIC_SITE_URL` | Your public URL — used in emails, checkout redirects and the sitemap. Must be set **at build time** (the sitemap and robots.txt are prerendered). |
 | Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Run every file in `supabase/migrations/` in order. All tables have RLS on with **no policies**: only the server (service role) can read or write. |
-| Lemon Squeezy | `LEMONSQUEEZY_API_KEY`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_VARIANT_ID_EUR`, `LEMONSQUEEZY_VARIANT_ID_GBP`, `LEMONSQUEEZY_WEBHOOK_SECRET` | One product with two variants (EUR 19, GBP 17). Webhook → `<site>/api/webhooks/lemonsqueezy`, events `order_created` and `order_refunded`. |
+| Lemon Squeezy | `LEMONSQUEEZY_API_KEY`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_VARIANT_ID_EUR`, `LEMONSQUEEZY_VARIANT_ID_GBP`, `LEMONSQUEEZY_WEBHOOK_SECRET` | One product with two variants in a EUR store: EU261 claims 19.00, UK261 claims 18.00 (must match `lib/pricing.json`). Webhook → `<site>/api/webhooks/lemonsqueezy`, events `order_created` and `order_refunded`. |
 | Resend | `RESEND_API_KEY`, `EMAIL_FROM` | Verify your sending domain. Without it, nothing is emailed but the pack page still works. |
 | Anthropic | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` (default `claude-sonnet-5-5`) | Optional. Without it, the claim letter uses the static template. |
 | PostHog | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | Enable **cookieless mode** in the project settings, or events are dropped. |

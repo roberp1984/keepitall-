@@ -17,7 +17,7 @@ describe("presentAssessment", () => {
       regime: "UK261",
       coverage: "Covered by UK261 because your flight left from the UK.",
       strength: { label: "strong", title: "Strong case" },
-      pack: { price: "£17", currency: "GBP" },
+      pack: { price: "€18", currency: "EUR" },
       disclaimer: DISCLAIMER,
       deadline: null,
     });

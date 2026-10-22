@@ -17,7 +17,7 @@ function clients(overrides: Partial<SetupClients> = {}): SetupClients {
     probeClaims: vi.fn().mockResolvedValue(null),
     lemonStore: vi.fn().mockResolvedValue({ name: "KeepItAll", currency: "EUR" }),
     lemonVariant: vi.fn(async (id: string) =>
-      id === "10" ? { name: "EUR pack", price: 1900, status: "published" } : { name: "GBP pack", price: 2000, status: "published" },
+      id === "10" ? { name: "EUR pack", price: 1900, status: "published" } : { name: "GBP pack", price: 1800, status: "published" },
     ),
     lemonWebhooks: vi.fn().mockResolvedValue([
       { url: "https://keepitall.example/api/webhooks/lemonsqueezy", events: ["order_created", "order_refunded"], testMode: true },
@@ -32,21 +32,21 @@ const byService = async (e: EnvSnapshot, c: SetupClients, origin: string | null 
   Object.fromEntries((await runSetupChecks(e, c, origin)).map((r) => [r.service, r]));
 
 describe("runSetupChecks", () => {
-  it("passes a fully configured setup, and warns that a EUR store can't charge exactly £17", async () => {
+  it("passes a fully configured setup where both variants match the advertised prices", async () => {
     const r = await byService(env, clients());
     expect(Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.status]))).toEqual({
       "Site URL": "ok",
       Supabase: "ok",
       "Lemon Squeezy": "ok",
       "Lemon Squeezy · EUR price": "ok",
-      "Lemon Squeezy · GBP price": "warn",
+      "Lemon Squeezy · GBP price": "ok",
       "Lemon Squeezy · webhook": "ok",
       Resend: "ok",
       Anthropic: "ok",
       PostHog: "ok",
       Cron: "ok",
     });
-    expect(r["Lemon Squeezy · GBP price"]!.detail).toContain("charges 20.00 EUR");
+    expect(r["Lemon Squeezy · GBP price"]!.detail).toBe("Variant “GBP pack” charges 18.00 EUR, matching the site.");
     expect(r["Lemon Squeezy · webhook"]!.detail).toContain("(test mode)");
   });
 
@@ -70,13 +70,19 @@ describe("runSetupChecks", () => {
         lemonWebhooks: vi.fn().mockResolvedValue([{ url: "https://keepitall.example/api/webhooks/lemonsqueezy", events: ["order_created"], testMode: false }]),
       }),
     );
-    expect(r["Lemon Squeezy · EUR price"]).toMatchObject({ status: "warn" });
-    expect(r["Lemon Squeezy · EUR price"]!.detail).toContain("advertises 19 EUR");
+    expect(r["Lemon Squeezy · EUR price"]).toMatchObject({ status: "fail" });
+    expect(r["Lemon Squeezy · EUR price"]!.detail).toContain("the site shows 19.00 EUR");
     expect(r["Lemon Squeezy · GBP price"]).toMatchObject({ status: "fail" });
     expect(r["Lemon Squeezy · webhook"]).toMatchObject({ status: "fail", detail: "Webhook is missing events: order_refunded." });
 
     const none = await byService(env, clients({ lemonWebhooks: vi.fn().mockResolvedValue([]) }));
     expect(none["Lemon Squeezy · webhook"]!.detail).toBe("No webhook points to https://keepitall.example/api/webhooks/lemonsqueezy.");
+  });
+
+  it("fails if the store charges in a different currency from the site", async () => {
+    const r = await byService(env, clients({ lemonStore: vi.fn().mockResolvedValue({ name: "KeepItAll", currency: "GBP" }) }));
+    expect(r["Lemon Squeezy · EUR price"]).toMatchObject({ status: "fail" });
+    expect(r["Lemon Squeezy · EUR price"]!.detail).toContain("Set the store currency to EUR");
   });
 
   it("stops Lemon checks if the store can't be loaded", async () => {

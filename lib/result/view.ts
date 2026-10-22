@@ -1,6 +1,6 @@
 import { DISCLAIMER } from "../legal";
 import { formatDate, formatDistance, formatMoney } from "../letters/format";
-import pricing from "../pricing.json";
+import { packPrice } from "../pricing";
 import { rulesets } from "../rules/config";
 import { isDisplayable } from "../rules/deadlines";
 import type { Assessment, OutcomeCode } from "../rules/eligibility";
@@ -136,6 +136,6 @@ export function presentAssessment(a: Assessment, ctx: ResultContext): ResultView
     perPassenger: per,
     total: formatMoney({ amount: a.total, currency: a.perPassenger.currency }),
     strength: label && a.strengthRationale ? { label, title: STRENGTH_TITLES[label], rationale: a.strengthRationale } : null,
-    pack: { price: formatMoney({ amount: pricing[a.perPassenger.currency], currency: a.perPassenger.currency }), currency: a.perPassenger.currency },
+    pack: { price: formatMoney(packPrice(a.perPassenger.currency)), currency: packPrice(a.perPassenger.currency).currency },
   };
 }

@@ -1,4 +1,4 @@
-import pricing from "../pricing.json";
+import { packPrice } from "../pricing";
 import type { Currency } from "../rules/types";
 
 export type CheckStatus = "ok" | "warn" | "fail" | "skip";
@@ -91,18 +91,20 @@ async function checkLemon(env: EnvSnapshot, c: SetupClients): Promise<CheckResul
     try {
       const v = await c.lemonVariant(env.lemon.variantIds[currency]);
       const charged = `${(v.price / 100).toFixed(2)} ${storeCurrency}`;
+      const expected = packPrice(currency);
+      const advertised = `${expected.amount.toFixed(2)} ${expected.currency}`;
       if (v.status !== "published") {
         results.push({ service: label, status: "fail", detail: `Variant “${v.name}” is ${v.status}; publish it.` });
-      } else if (storeCurrency !== currency) {
+      } else if (storeCurrency !== expected.currency) {
         results.push({
           service: label,
-          status: "warn",
-          detail: `Variant “${v.name}” charges ${charged}. The store currency is ${storeCurrency}, so customers can't be charged exactly ${pricing[currency]} ${currency}.`,
+          status: "fail",
+          detail: `Variant “${v.name}” charges ${charged}, but the site shows ${advertised}. Set the store currency to ${expected.currency} or update lib/pricing.json.`,
         });
-      } else if (v.price !== pricing[currency] * 100) {
-        results.push({ service: label, status: "warn", detail: `Variant “${v.name}” charges ${charged}; the site advertises ${pricing[currency]} ${currency}.` });
+      } else if (v.price !== Math.round(expected.amount * 100)) {
+        results.push({ service: label, status: "fail", detail: `Variant “${v.name}” charges ${charged}; the site shows ${advertised}. Make them match.` });
       } else {
-        results.push({ service: label, status: "ok", detail: `Variant “${v.name}” charges ${charged}.` });
+        results.push({ service: label, status: "ok", detail: `Variant “${v.name}” charges ${charged}, matching the site.` });
       }
     } catch (err) {
       results.push({ service: label, status: "fail", detail: `Can't load variant: ${errorText(err)}` });

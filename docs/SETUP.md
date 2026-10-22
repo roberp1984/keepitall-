@@ -35,10 +35,10 @@ Keep a copy in your password manager: you'll need it for step 9.
 ## 4. Lemon Squeezy: payments
 
 1. Create a store. Lemon Squeezy must **activate the store** before it can take live payments, and that review can take a few days, so start it early. Test mode works straight away.
-2. **Store currency.** A store charges in one currency. With a EUR store, the "£17" variant is charged in EUR (customers are shown a converted estimate). Decide whether that's acceptable, or set the GBP variant to the EUR amount closest to £17. `setup:check` shows exactly what each variant charges.
+2. **Store currency: EUR.** A store charges in one currency, so UK261 claims are charged in EUR too. The site shows exactly what each variant charges, from `lib/pricing.json` (EU261 €19, UK261 €18). If you change a price in Lemon Squeezy, change it there too. `setup:check` fails if they differ.
 3. **Products → New product** "Claim pack", single payment, with two variants:
-   - EUR: 19.00
-   - GBP: see the note above
+   - EUR (EU261 claims): 19.00
+   - GBP (UK261 claims): 18.00 (charged in EUR)
 4. Add to Vercel:
    - `LEMONSQUEEZY_STORE_ID`: Settings → Stores
    - `LEMONSQUEEZY_VARIANT_ID_EUR` and `LEMONSQUEEZY_VARIANT_ID_GBP`: the variant IDs (shown in the product's variant settings)

@@ -1,5 +1,5 @@
 import { formatMoney } from "./letters/format";
-import pricing from "./pricing.json";
+import { packPrice } from "./pricing";
 import { rulesetFor } from "./rules/config";
 import type { Currency } from "./rules/types";
 
@@ -7,13 +7,15 @@ import type { Currency } from "./rules/types";
 export const CLAIM_COMPANY_FEE = { min: 0.25, max: 0.35 };
 
 export function feeComparison(amount: number, currency: Currency) {
+  const price = packPrice(currency);
+  if (price.currency !== currency) throw new Error(`Pack price for ${currency} claims is charged in ${price.currency}`);
   const fee = Math.round(amount * CLAIM_COMPANY_FEE.max);
   return {
     compensation: formatMoney({ amount, currency }),
     claimCompanyFee: formatMoney({ amount: fee, currency }),
     claimCompanyKeeps: formatMoney({ amount: amount - fee, currency }),
-    ourPrice: formatMoney({ amount: pricing[currency], currency }),
-    youKeep: formatMoney({ amount: amount - pricing[currency], currency }),
+    ourPrice: formatMoney(price),
+    youKeep: formatMoney({ amount: amount - price.amount, currency }),
     feePercent: `${Math.round(CLAIM_COMPANY_FEE.max * 100)}%`,
   };
 }
