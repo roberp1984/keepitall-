@@ -6,10 +6,16 @@ import { serviceDeps } from "@/lib/server/deps";
 /** Lemon Squeezy webhook: the single source of truth for "paid". */
 export async function POST(request: Request) {
   const payments = paymentsConfig();
-  if (!payments) return new Response("Payments not configured", { status: 503 });
+  if (!payments) {
+    console.error("[webhook] rejected: payments not configured");
+    return new Response("Payments not configured", { status: 503 });
+  }
 
   const raw = await request.text();
-  if (!verifyWebhookSignature(raw, request.headers.get("x-signature"), payments.webhookSecret)) {
+  const signature = request.headers.get("x-signature");
+  if (!verifyWebhookSignature(raw, signature, payments.webhookSecret)) {
+    // Never log the secret or the signature itself.
+    console.error("[webhook] rejected: invalid signature", { hasSignature: Boolean(signature), bodyBytes: raw.length });
     return new Response("Invalid signature", { status: 401 });
   }
 
@@ -21,6 +27,7 @@ export async function POST(request: Request) {
   }
 
   const event = parseWebhookEvent(payload);
+  console.info("[webhook] received", { type: event.type, ...(event.type === "ignored" ? { reason: event.reason } : { orderId: event.orderId }) });
   const deps = serviceDeps();
   switch (event.type) {
     case "order_paid": {
