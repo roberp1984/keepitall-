@@ -13,6 +13,7 @@
     "airports:generate": "node scripts/generate-airports.mts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0",
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0"

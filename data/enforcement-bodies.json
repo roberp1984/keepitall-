@@ -1,0 +1,40 @@
+{
+  "$comment": "National enforcement bodies (NEB) and ADR schemes. EU261 Art. 16: the NEB of the state where the departure airport is, or the arrival airport for inbound flights from third countries. UK261: the CAA, or the airline's approved ADR scheme if it is a member. ADR membership is airline-specific. EVERY entry must be verified by a human; nothing with verified=false is shown to users.",
+  "escalation": {
+    "EU261": { "afterDays": 30, "note": "Escalate to the NEB if the airline has not replied, or has refused, after this many days." },
+    "UK261": { "afterDays": 56, "note": "After 8 weeks without a resolution, escalate to the airline's ADR scheme, or to the CAA if the airline is not in one." }
+  },
+  "aliases": { "GP": "FR", "MQ": "FR", "GF": "FR", "RE": "FR", "YT": "FR", "MF": "FR" },
+  "bodies": {
+    "GB": { "name": "Civil Aviation Authority (CAA)", "url": "https://www.caa.co.uk", "adr": [
+      { "name": "AviationADR", "url": "https://www.aviationadr.org.uk" },
+      { "name": "CEDR Aviation Adjudication Scheme", "url": "https://www.cedr.com" }
+    ], "verified": false },
+    "IE": { "name": "Commission for Aviation Regulation", "url": "https://www.aviationreg.ie", "adr": [], "verified": false },
+    "DE": { "name": "Luftfahrt-Bundesamt (LBA)", "url": "https://www.lba.de", "adr": [
+      { "name": "söp – Schlichtungsstelle für den öffentlichen Personenverkehr", "url": "https://soep-online.de" }
+    ], "verified": false },
+    "FR": { "name": "Direction générale de l'aviation civile (DGAC)", "url": null, "adr": [
+      { "name": "Médiateur Tourisme et Voyage", "url": "https://www.mtv.travel" }
+    ], "verified": false },
+    "ES": { "name": "Agencia Estatal de Seguridad Aérea (AESA)", "url": "https://www.seguridadaerea.gob.es", "adr": [], "verified": false },
+    "IT": { "name": "Ente Nazionale per l'Aviazione Civile (ENAC)", "url": "https://www.enac.gov.it", "adr": [], "verified": false },
+    "NL": { "name": "Human Environment and Transport Inspectorate (ILT)", "url": "https://www.ilent.nl", "adr": [], "verified": false },
+    "BE": { "name": "FPS Mobility and Transport", "url": "https://mobilit.belgium.be", "adr": [], "verified": false },
+    "PT": { "name": "Autoridade Nacional da Aviação Civil (ANAC)", "url": "https://www.anac.pt", "adr": [], "verified": false },
+    "AT": { "name": "Agentur für Passagier- und Fahrgastrechte (apf)", "url": "https://www.apf.gv.at", "adr": [], "verified": false },
+    "PL": { "name": "Civil Aviation Authority (ULC)", "url": "https://www.ulc.gov.pl", "adr": [], "verified": false },
+    "GR": { "name": "Hellenic Civil Aviation Authority", "url": null, "adr": [], "verified": false },
+    "DK": { "name": "Danish Civil Aviation and Railway Authority", "url": "https://www.trafikstyrelsen.dk", "adr": [], "verified": false },
+    "SE": { "name": "Swedish Consumer Agency (Konsumentverket)", "url": "https://www.konsumentverket.se", "adr": [
+      { "name": "National Board for Consumer Disputes (ARN)", "url": "https://www.arn.se" }
+    ], "verified": false },
+    "FI": { "name": "Finnish Competition and Consumer Authority (KKV)", "url": "https://www.kkv.fi", "adr": [
+      { "name": "Consumer Disputes Board", "url": "https://www.kuluttajariita.fi" }
+    ], "verified": false },
+    "NO": { "name": "Civil Aviation Authority Norway", "url": "https://luftfartstilsynet.no", "adr": [
+      { "name": "Transportklagenemnda", "url": "https://www.transportklagenemnda.no" }
+    ], "verified": false },
+    "CH": { "name": "Federal Office of Civil Aviation (FOCA)", "url": "https://www.bazl.admin.ch", "adr": [], "verified": false }
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "$comment": "Letter settings. responseDays: how long the airline is given to reply to the claim letter.",
+  "responseDays": 14
+}

@@ -36,3 +36,7 @@ export function addYears(value: string, years: number): string {
 export function daysBetween(from: string, to: string): number {
   return Math.round((parseIsoDate(to).getTime() - parseIsoDate(from).getTime()) / MS_PER_DAY);
 }
+
+export function addDays(value: string, days: number): string {
+  return formatIsoDate(new Date(parseIsoDate(value).getTime() + days * MS_PER_DAY));
+}
