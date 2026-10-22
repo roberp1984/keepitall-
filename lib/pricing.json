@@ -1,0 +1,5 @@
+{
+  "$comment": "Claim pack price by the currency of the claim (one-time, per claim).",
+  "EUR": 19,
+  "GBP": 17
+}
