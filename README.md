@@ -31,7 +31,7 @@ CI (`.github/workflows/ci.yml`) runs all four checks on every push.
 
 ## Configuration
 
-Copy `.env.example` to `.env.local` (or set the variables in Vercel).
+**Step-by-step account setup: [`docs/SETUP.md`](docs/SETUP.md).** Copy `.env.example` to `.env.local` for local development, or set the variables in Vercel.
 
 | Integration | Variables | Setup |
 |---|---|---|
@@ -43,7 +43,7 @@ Copy `.env.example` to `.env.local` (or set the variables in Vercel).
 | PostHog | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | Enable **cookieless mode** in the project settings, or events are dropped. |
 | Cron | `CRON_SECRET` | Vercel Cron calls `/api/cron/daily` (see `vercel.json`) with this as a bearer token. |
 
-Before going live, do one test-mode purchase end to end: check → checkout → webhook → details → pack page, email and PDF.
+Check a deployment with `CRON_SECRET=… npm run setup:check -- https://your-site` (read-only checks of every integration), then do one test-mode purchase end to end.
 
 ## How it works
 

@@ -10,7 +10,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "airports:generate": "node scripts/generate-airports.mts"
+    "airports:generate": "node scripts/generate-airports.mts",
+    "setup:check": "node scripts/setup-check.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",

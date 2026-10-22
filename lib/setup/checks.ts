@@ -1,0 +1,181 @@
+import pricing from "../pricing.json";
+import type { Currency } from "../rules/types";
+
+export type CheckStatus = "ok" | "warn" | "fail" | "skip";
+
+export interface CheckResult {
+  service: string;
+  status: CheckStatus;
+  /** Human-readable; never contains secrets. */
+  detail: string;
+}
+
+/** Which variables are set (values only where they are not secret). */
+export interface EnvSnapshot {
+  siteUrl: string | null;
+  supabase: boolean;
+  lemon: { storeId: string; variantIds: Record<Currency, string>; webhookSecret: boolean } | null;
+  emailFrom: string | null;
+  resend: boolean;
+  anthropicModel: string | null;
+  posthogKey: string | null;
+  cronSecretLength: number;
+}
+
+export interface SetupClients {
+  /** `select <columns> from claims limit 1`; returns the error message, if any. */
+  probeClaims(columns: string): Promise<string | null>;
+  lemonStore(storeId: string): Promise<{ name: string; currency: string }>;
+  lemonVariant(variantId: string): Promise<{ name: string; price: number; status: string }>;
+  lemonWebhooks(storeId: string): Promise<{ url: string; events: string[]; testMode: boolean }[]>;
+  resendDomains(): Promise<{ name: string; status: string }[]>;
+  anthropicModel(model: string): Promise<void>;
+}
+
+const MIGRATIONS = {
+  init: "supabase/migrations/20261022000000_init.sql",
+  lifecycle: "supabase/migrations/20261022010000_lifecycle.sql",
+};
+const WEBHOOK_EVENTS = ["order_created", "order_refunded"];
+
+const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err)).slice(0, 200);
+
+export function emailDomain(from: string): string | null {
+  const match = /<?[^\s<>@]+@([^\s<>]+?)>?\s*$/.exec(from.trim());
+  return match ? match[1]!.toLowerCase() : null;
+}
+
+function checkSite(env: EnvSnapshot, requestOrigin: string | null): CheckResult {
+  const service = "Site URL";
+  if (!env.siteUrl) return { service, status: "fail", detail: "NEXT_PUBLIC_SITE_URL is not set." };
+  if (!env.siteUrl.startsWith("https://") && !env.siteUrl.startsWith("http://localhost")) {
+    return { service, status: "fail", detail: `${env.siteUrl} must use https.` };
+  }
+  if (requestOrigin && requestOrigin !== env.siteUrl) {
+    return { service, status: "warn", detail: `Set to ${env.siteUrl}, but this request came to ${requestOrigin}. Emails and checkout redirects use the configured value.` };
+  }
+  return { service, status: "ok", detail: env.siteUrl };
+}
+
+async function checkSupabase(env: EnvSnapshot, c: SetupClients): Promise<CheckResult> {
+  const service = "Supabase";
+  if (!env.supabase) return { service, status: "fail", detail: "NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for checkout." };
+  try {
+    const base = await c.probeClaims("id");
+    if (base) return { service, status: "fail", detail: `Can't read the claims table (${base}). Run ${MIGRATIONS.init}, and check the service-role key.` };
+    const lifecycle = await c.probeClaims("followups, followups_opt_out, expired_at");
+    if (lifecycle) return { service, status: "fail", detail: `Lifecycle columns missing (${lifecycle}). Run ${MIGRATIONS.lifecycle}.` };
+    return { service, status: "ok", detail: "Connected; both migrations applied." };
+  } catch (err) {
+    return { service, status: "fail", detail: `Connection failed: ${errorText(err)}` };
+  }
+}
+
+async function checkLemon(env: EnvSnapshot, c: SetupClients): Promise<CheckResult[]> {
+  const service = "Lemon Squeezy";
+  if (!env.lemon) {
+    return [{ service, status: "fail", detail: "Set LEMONSQUEEZY_API_KEY, _STORE_ID, _VARIANT_ID_EUR, _VARIANT_ID_GBP and _WEBHOOK_SECRET." }];
+  }
+  const results: CheckResult[] = [];
+  let storeCurrency: string;
+  try {
+    const store = await c.lemonStore(env.lemon.storeId);
+    storeCurrency = store.currency.toUpperCase();
+    results.push({ service, status: "ok", detail: `Store “${store.name}” (currency ${storeCurrency}).` });
+  } catch (err) {
+    return [{ service, status: "fail", detail: `Can't load store ${env.lemon.storeId}: ${errorText(err)}` }];
+  }
+
+  for (const currency of ["EUR", "GBP"] as const) {
+    const label = `${service} · ${currency} price`;
+    try {
+      const v = await c.lemonVariant(env.lemon.variantIds[currency]);
+      const charged = `${(v.price / 100).toFixed(2)} ${storeCurrency}`;
+      if (v.status !== "published") {
+        results.push({ service: label, status: "fail", detail: `Variant “${v.name}” is ${v.status}; publish it.` });
+      } else if (storeCurrency !== currency) {
+        results.push({
+          service: label,
+          status: "warn",
+          detail: `Variant “${v.name}” charges ${charged}. The store currency is ${storeCurrency}, so customers can't be charged exactly ${pricing[currency]} ${currency}.`,
+        });
+      } else if (v.price !== pricing[currency] * 100) {
+        results.push({ service: label, status: "warn", detail: `Variant “${v.name}” charges ${charged}; the site advertises ${pricing[currency]} ${currency}.` });
+      } else {
+        results.push({ service: label, status: "ok", detail: `Variant “${v.name}” charges ${charged}.` });
+      }
+    } catch (err) {
+      results.push({ service: label, status: "fail", detail: `Can't load variant: ${errorText(err)}` });
+    }
+  }
+
+  const label = `${service} · webhook`;
+  if (!env.lemon.webhookSecret) {
+    results.push({ service: label, status: "fail", detail: "LEMONSQUEEZY_WEBHOOK_SECRET is not set." });
+  } else if (!env.siteUrl) {
+    results.push({ service: label, status: "skip", detail: "Set NEXT_PUBLIC_SITE_URL to check the webhook URL." });
+  } else {
+    const expected = `${env.siteUrl}/api/webhooks/lemonsqueezy`;
+    try {
+      const hook = (await c.lemonWebhooks(env.lemon.storeId)).find((w) => w.url === expected);
+      const missing = hook ? WEBHOOK_EVENTS.filter((e) => !hook.events.includes(e)) : WEBHOOK_EVENTS;
+      if (!hook) results.push({ service: label, status: "fail", detail: `No webhook points to ${expected}.` });
+      else if (missing.length) results.push({ service: label, status: "fail", detail: `Webhook is missing events: ${missing.join(", ")}.` });
+      else results.push({ service: label, status: "ok", detail: `${expected}${hook.testMode ? " (test mode)" : ""}. The signing secret can't be checked remotely: it must match LEMONSQUEEZY_WEBHOOK_SECRET.` });
+    } catch (err) {
+      results.push({ service: label, status: "fail", detail: `Can't list webhooks: ${errorText(err)}` });
+    }
+  }
+  return results;
+}
+
+async function checkResend(env: EnvSnapshot, c: SetupClients): Promise<CheckResult> {
+  const service = "Resend";
+  if (!env.resend || !env.emailFrom) return { service, status: "warn", detail: "RESEND_API_KEY / EMAIL_FROM not set: no emails will be sent." };
+  const domain = emailDomain(env.emailFrom);
+  if (!domain) return { service, status: "fail", detail: `EMAIL_FROM “${env.emailFrom}” is not a valid address.` };
+  try {
+    const found = (await c.resendDomains()).find((d) => d.name.toLowerCase() === domain);
+    if (!found) return { service, status: "fail", detail: `Domain ${domain} is not added in Resend.` };
+    if (found.status !== "verified") return { service, status: "fail", detail: `Domain ${domain} is ${found.status}; finish DNS verification.` };
+    return { service, status: "ok", detail: `Sending from ${env.emailFrom} (${domain} verified).` };
+  } catch (err) {
+    return { service, status: "fail", detail: `Can't reach Resend: ${errorText(err)}` };
+  }
+}
+
+async function checkAnthropic(env: EnvSnapshot, c: SetupClients): Promise<CheckResult> {
+  const service = "Anthropic";
+  if (!env.anthropicModel) return { service, status: "skip", detail: "ANTHROPIC_API_KEY not set: claim letters use the static template." };
+  try {
+    await c.anthropicModel(env.anthropicModel);
+    return { service, status: "ok", detail: `Key works; model ${env.anthropicModel} is available.` };
+  } catch (err) {
+    return { service, status: "fail", detail: `Model ${env.anthropicModel}: ${errorText(err)}` };
+  }
+}
+
+function checkPosthog(env: EnvSnapshot): CheckResult {
+  const service = "PostHog";
+  if (!env.posthogKey) return { service, status: "skip", detail: "NEXT_PUBLIC_POSTHOG_KEY not set: no analytics." };
+  if (!env.posthogKey.startsWith("phc_")) return { service, status: "warn", detail: "Key doesn't look like a project API key (phc_…)." };
+  return { service, status: "ok", detail: "Key set. Make sure cookieless mode is enabled in the project settings." };
+}
+
+function checkCron(env: EnvSnapshot): CheckResult {
+  const service = "Cron";
+  if (env.cronSecretLength === 0) return { service, status: "fail", detail: "CRON_SECRET not set: follow-ups and data retention won't run." };
+  if (env.cronSecretLength < 32) return { service, status: "warn", detail: "CRON_SECRET is short; use at least 32 random characters." };
+  return { service, status: "ok", detail: "Secret set; Vercel Cron calls /api/cron/daily daily." };
+}
+
+/** Read-only checks of every integration. */
+export async function runSetupChecks(env: EnvSnapshot, clients: SetupClients, requestOrigin: string | null = null): Promise<CheckResult[]> {
+  const [supabase, lemon, resend, anthropic] = await Promise.all([
+    checkSupabase(env, clients),
+    checkLemon(env, clients),
+    checkResend(env, clients),
+    checkAnthropic(env, clients),
+  ]);
+  return [checkSite(env, requestOrigin), supabase, ...lemon, resend, anthropic, checkPosthog(env), checkCron(env)];
+}
