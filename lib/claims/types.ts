@@ -4,7 +4,9 @@ import type { ClaimFacts } from "../letters/types";
 import type { Assessment, ClaimInput } from "../rules/eligibility";
 import type { Currency, Regime } from "../rules/types";
 
-export type ClaimStatus = "checkout_started" | "paid" | "pack_ready" | "refunded";
+export type ClaimStatus = "checkout_started" | "paid" | "pack_ready" | "refunded" | "expired";
+
+export type FollowUpId = "reply_check" | "escalate";
 
 export interface StoredPack {
   facts: ClaimFacts;
@@ -36,6 +38,23 @@ export interface ClaimRecord {
   details: DetailsForm | null;
   pack: StoredPack | null;
   createdAt: string;
+  packReadyAt: string | null;
+  /** Follow-up id → ISO time it was sent. */
+  followUps: Partial<Record<FollowUpId, string>>;
+  followUpsOptOut: boolean;
+}
+
+export interface PurgeCutoffs {
+  /** ISO timestamps: rows older than these are removed. */
+  unpaidBefore: string;
+  refundedBefore: string;
+  packDetailsBefore: string;
+}
+
+export interface PurgeResult {
+  unpaidDeleted: number;
+  refundedDeleted: number;
+  packsExpired: number;
 }
 
 export interface NewClaim {
@@ -67,4 +86,9 @@ export interface ClaimStore {
   /** Marks the order and its claim refunded. Returns false if the order is unknown. */
   recordRefund(providerOrderId: string): Promise<boolean>;
   saveDetailsAndPack(claimId: string, details: DetailsForm, pack: StoredPack): Promise<void>;
+  /** Claims with a ready pack, not opted out, ready since before `readyBefore`. */
+  listFollowUpCandidates(readyBefore: string): Promise<ClaimRecord[]>;
+  markFollowUpSent(claimId: string, id: FollowUpId, at: string): Promise<void>;
+  setFollowUpOptOut(packToken: string): Promise<boolean>;
+  purge(cutoffs: PurgeCutoffs): Promise<PurgeResult>;
 }

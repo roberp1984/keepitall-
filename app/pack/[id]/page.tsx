@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { AwaitingPayment } from "@/components/pack/awaiting-payment";
 import { DetailsForm } from "@/components/pack/details-form";
 import { PackView } from "@/components/pack/pack-view";
-import { TrackOnMount } from "@/components/track";
 import { isPackToken } from "@/lib/claims/token";
 import { supabaseConfig } from "@/lib/env";
 import { serviceDeps } from "@/lib/server/deps";
@@ -44,7 +43,6 @@ async function Pack({ token }: { token: string }) {
     case "paid":
       return (
         <div className="flex flex-col gap-6">
-          <TrackOnMount event="payment_succeeded" />
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-bold tracking-tight">Payment confirmed. Last step.</h1>
             <p className="text-muted-foreground">
@@ -52,6 +50,15 @@ async function Pack({ token }: { token: string }) {
             </p>
           </div>
           <DetailsForm token={token} passengers={claim.assessment.passengers} defaultEmail={claim.orderEmail ?? ""} />
+        </div>
+      );
+    case "expired":
+      return (
+        <div className="flex flex-col gap-3">
+          <h1 className="text-2xl font-bold">This claim pack has expired</h1>
+          <p className="text-muted-foreground">
+            We delete personal details after a while to protect your privacy. Please use the PDF we emailed you.
+          </p>
         </div>
       );
     case "pack_ready":

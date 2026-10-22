@@ -65,6 +65,10 @@ export function PackView({ token, facts, pack }: { token: string; facts: ClaimFa
           />
         </div>
       </details>
+
+      <a href={`/pack/${token}/emails`} className="text-sm text-muted-foreground underline">
+        Manage reminder emails
+      </a>
     </div>
   );
 }

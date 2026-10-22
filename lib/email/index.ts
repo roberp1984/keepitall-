@@ -52,3 +52,31 @@ export function packReadyEmail(to: string, packUrl: string, flightNumber: string
     attachments: pdf ? [{ filename: `claim-pack-${flightNumber}.pdf`, content: pdf }] : undefined,
   };
 }
+
+export function followUpEmail(
+  kind: "reply_check" | "escalate",
+  to: string,
+  packUrl: string,
+  flightNumber: string,
+  escalateAfterDays: number,
+  optOutUrl: string,
+): EmailMessage {
+  const paragraphs =
+    kind === "reply_check"
+      ? [
+          `It's been two weeks since your claim pack for flight ${flightNumber} was ready. Has the airline replied?`,
+          "If they refused because of “extraordinary circumstances”, or offered a voucher, your pack has a ready-made reply for each.",
+          "If they paid, congratulations: you kept it all.",
+        ]
+      : [
+          `If the airline still hasn't paid your claim for flight ${flightNumber}, it may be time to escalate (${escalateAfterDays} days have passed).`,
+          "Your pack includes an escalation letter for the enforcement body or dispute-resolution scheme. Update the dates in it before you send it.",
+        ];
+  const footer = `Don't want these reminders? ${optOutUrl}`;
+  return {
+    to,
+    subject: kind === "reply_check" ? `Has the airline replied about flight ${flightNumber}?` : `Time to escalate your claim for flight ${flightNumber}?`,
+    text: `${paragraphs.join("\n\n")}\n\n${packUrl}\n\n${footer}\n\n${DISCLAIMER}`,
+    html: html([...paragraphs, footer], { href: packUrl, label: "Open your claim pack" }),
+  };
+}

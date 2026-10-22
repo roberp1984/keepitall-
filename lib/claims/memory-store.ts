@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto";
-import type { ClaimRecord, ClaimStore, DetailsForm, NewClaim, PaidOrder, StoredPack } from "./types";
+import type { ClaimRecord, ClaimStore, DetailsForm, NewClaim, PaidOrder, PurgeCutoffs, StoredPack } from "./types";
 
 interface OrderRow extends PaidOrder {
   status: "paid" | "refunded";
+  refundedAt?: string;
 }
 
 /** In-memory ClaimStore for tests and local development without Supabase. */
-export function createMemoryStore(): ClaimStore & { orders: OrderRow[] } {
+export function createMemoryStore(): ClaimStore & { orders: OrderRow[]; _set(id: string, patch: Partial<ClaimRecord>): void } {
   const claims = new Map<string, ClaimRecord>();
   const orders: OrderRow[] = [];
   const clone = <T>(v: T): T => structuredClone(v);
@@ -22,6 +23,9 @@ export function createMemoryStore(): ClaimStore & { orders: OrderRow[] } {
         details: null,
         pack: null,
         createdAt: new Date().toISOString(),
+        packReadyAt: null,
+        followUps: {},
+        followUpsOptOut: false,
       };
       claims.set(record.id, record);
       return clone(record);
@@ -47,6 +51,7 @@ export function createMemoryStore(): ClaimStore & { orders: OrderRow[] } {
       const order = orders.find((o) => o.providerOrderId === providerOrderId);
       if (!order) return false;
       order.status = "refunded";
+      order.refundedAt = new Date().toISOString();
       const claim = claims.get(order.claimId);
       if (claim) claim.status = "refunded";
       return true;
@@ -57,6 +62,47 @@ export function createMemoryStore(): ClaimStore & { orders: OrderRow[] } {
       claim.details = clone(details);
       claim.pack = clone(pack);
       claim.status = "pack_ready";
+      claim.packReadyAt = new Date().toISOString();
+    },
+    async listFollowUpCandidates(readyBefore) {
+      return [...claims.values()]
+        .filter((c) => c.status === "pack_ready" && !c.followUpsOptOut && c.packReadyAt !== null && c.packReadyAt <= readyBefore)
+        .map(clone);
+    },
+    async markFollowUpSent(claimId, id, at) {
+      const claim = claims.get(claimId);
+      if (claim) claim.followUps[id] = at;
+    },
+    async setFollowUpOptOut(packToken) {
+      const claim = [...claims.values()].find((c) => c.packToken === packToken);
+      if (!claim) return false;
+      claim.followUpsOptOut = true;
+      return true;
+    },
+    async purge(cutoffs: PurgeCutoffs) {
+      const refundedAt = (c: ClaimRecord) => orders.find((o) => o.claimId === c.id && o.refundedAt)?.refundedAt ?? c.createdAt;
+      let unpaidDeleted = 0;
+      let refundedDeleted = 0;
+      let packsExpired = 0;
+      for (const [id, c] of claims) {
+        if (c.status === "checkout_started" && c.createdAt < cutoffs.unpaidBefore) {
+          claims.delete(id);
+          unpaidDeleted++;
+        } else if (c.status === "refunded" && refundedAt(c) < cutoffs.refundedBefore) {
+          claims.delete(id);
+          refundedDeleted++;
+        } else if (c.status === "pack_ready" && c.packReadyAt && c.packReadyAt < cutoffs.packDetailsBefore) {
+          c.details = null;
+          c.pack = null;
+          c.status = "expired";
+          packsExpired++;
+        }
+      }
+      return { unpaidDeleted, refundedDeleted, packsExpired };
+    },
+    /** Test helper: move timestamps into the past. */
+    _set(id: string, patch: Partial<ClaimRecord>) {
+      Object.assign(claims.get(id)!, patch);
     },
   };
 }

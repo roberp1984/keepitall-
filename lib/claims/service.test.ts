@@ -158,3 +158,15 @@ describe("submitDetails", () => {
     expect(logs).toContain("pack email failed");
   });
 });
+
+describe("analytics", () => {
+  it("tracks payment_succeeded server-side once, with no personal data", async () => {
+    const track = vi.fn().mockResolvedValue(undefined);
+    const { deps, store } = testDeps({ track });
+    const claim = await createClaimForCheckout(store, eligibleAnswers, eligibleInput());
+    await handleOrderPaid(deps, paid(claim.id));
+    await handleOrderPaid(deps, paid(claim.id));
+    expect(track).toHaveBeenCalledTimes(1);
+    expect(track).toHaveBeenCalledWith("payment_succeeded", claim.id, { regime: "UK261", currency: "GBP", test_mode: true });
+  });
+});

@@ -1,4 +1,5 @@
 // Server-only composition root: builds service dependencies from environment variables.
+import { trackServer } from "../analytics-server";
 import { createSupabaseStore } from "../claims/supabase-store";
 import type { ServiceDeps } from "../claims/service";
 import { noopEmailSender } from "../email";
@@ -21,6 +22,7 @@ export function serviceDeps(): ServiceDeps {
     siteUrl: siteUrl(),
     generate: anthropicConfigured() ? anthropicGenerator() : undefined,
     renderPdf: renderClaimPackPdf,
+    track: trackServer,
     log: (message, extra) => console.warn(`[claims] ${message}`, extra ?? {}),
   };
 }

@@ -16,6 +16,8 @@ export interface ServiceDeps {
   siteUrl: string;
   generate?: TextGenerator;
   renderPdf?: (facts: ClaimFacts, pack: ClaimPack) => Promise<Buffer>;
+  /** Server-side analytics; never pass personal data. */
+  track?: (event: "payment_succeeded", distinctId: string, properties: Record<string, string | number | boolean>) => Promise<void>;
   /** YYYY-MM-DD; injected for tests. */
   today?: () => string;
   log?: (message: string, extra?: Record<string, unknown>) => void;
@@ -70,6 +72,7 @@ export async function handleOrderPaid(
     testMode: order.testMode,
   });
   if (result === "recorded") {
+    await deps.track?.("payment_succeeded", claim.id, { regime: claim.regime, currency: claim.currency, test_mode: order.testMode });
     try {
       await deps.email.send(paymentConfirmedEmail(order.email, packUrl(deps.siteUrl, claim.packToken)));
     } catch (err) {

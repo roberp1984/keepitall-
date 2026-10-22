@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 import { createSupabaseStore } from "@/lib/claims/supabase-store";
 
-type Result = { data?: unknown; error?: { code?: string; message: string } | null };
+type Result = { data?: unknown; error?: { code?: string; message: string } | null; count?: number };
 
 /** Minimal chainable fake of the supabase-js query builder; records each call. */
 function fakeClient(results: Result[]) {
@@ -13,13 +13,14 @@ function fakeClient(results: Result[]) {
       calls.push(call);
       const result = results.shift() ?? { data: null, error: null };
       const builder: Record<string, unknown> = {};
-      for (const op of ["select", "insert", "update", "upsert", "eq", "single", "maybeSingle"]) {
+      for (const op of ["select", "insert", "update", "upsert", "delete", "eq", "lt", "lte", "in", "single", "maybeSingle"]) {
         builder[op] = (...args: unknown[]) => {
           call.ops.push([op, args]);
           return builder;
         };
       }
-      builder.then = (resolve: (r: Result) => unknown) => resolve({ data: result.data ?? null, error: result.error ?? null });
+      builder.then = (resolve: (r: Result & { count?: number }) => unknown) =>
+        resolve({ data: result.data ?? null, error: result.error ?? null, count: (result as { count?: number }).count });
       return builder;
     },
   };
@@ -109,5 +110,40 @@ describe("createSupabaseStore", () => {
     await createSupabaseStore(config, client).saveDetailsAndPack("c1", {} as never, {} as never);
     expect(calls.map((c) => c.table)).toEqual(["claim_details", "claims"]);
     expect(calls[0]!.ops[0]![0]).toBe("upsert");
+  });
+
+  it("maps lifecycle fields", async () => {
+    const { client } = fakeClient([{ data: { ...row, pack_ready_at: "2026-10-01T00:00:00Z", followups: { reply_check: "x" }, followups_opt_out: true } }]);
+    expect(await createSupabaseStore(config, client).getById("c1")).toMatchObject({
+      packReadyAt: "2026-10-01T00:00:00Z",
+      followUps: { reply_check: "x" },
+      followUpsOptOut: true,
+    });
+  });
+
+  it("lists follow-up candidates with the right filters", async () => {
+    const { client, calls } = fakeClient([{ data: [row] }]);
+    expect(await createSupabaseStore(config, client).listFollowUpCandidates("2026-10-01")).toHaveLength(1);
+    expect(calls[0]!.ops).toEqual(expect.arrayContaining([["eq", ["status", "pack_ready"]], ["eq", ["followups_opt_out", false]], ["lte", ["pack_ready_at", "2026-10-01"]]]));
+  });
+
+  it("merges follow-up timestamps", async () => {
+    const { client, calls } = fakeClient([{ data: { followups: { reply_check: "a" } } }, {}]);
+    await createSupabaseStore(config, client).markFollowUpSent("c1", "escalate", "b");
+    expect(calls[1]!.ops[0]).toEqual(["update", [{ followups: { reply_check: "a", escalate: "b" } }]]);
+  });
+
+  it("purges unpaid and refunded claims and expires old packs", async () => {
+    const { client, calls } = fakeClient([{ count: 2 }, { count: 1 }, { data: [{ id: "c1" }, { id: "c2" }] }, {}, {}]);
+    const result = await createSupabaseStore(config, client).purge({ unpaidBefore: "u", refundedBefore: "r", packDetailsBefore: "p" });
+    expect(result).toEqual({ unpaidDeleted: 2, refundedDeleted: 1, packsExpired: 2 });
+    expect(calls.map((c) => c.table)).toEqual(["claims", "claims", "claims", "claim_details", "claims"]);
+    expect(calls[3]!.ops).toContainEqual(["in", ["claim_id", ["c1", "c2"]]]);
+  });
+
+  it("skips detail deletion when no packs have expired", async () => {
+    const { client, calls } = fakeClient([{ count: 0 }, { count: 0 }, { data: [] }]);
+    expect((await createSupabaseStore(config, client).purge({ unpaidBefore: "u", refundedBefore: "r", packDetailsBefore: "p" })).packsExpired).toBe(0);
+    expect(calls).toHaveLength(3);
   });
 });

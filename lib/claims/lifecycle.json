@@ -1,0 +1,12 @@
+{
+  "$comment": "Follow-up emails after the pack is ready, and data retention. Retention periods are a product/legal decision: review before launch.",
+  "followUps": {
+    "reply_check": { "afterDays": 15 },
+    "escalate": { "afterDays": "escalation" }
+  },
+  "retention": {
+    "unpaidClaimDays": 30,
+    "refundedClaimDays": 30,
+    "packDetailsDays": 730
+  }
+}
