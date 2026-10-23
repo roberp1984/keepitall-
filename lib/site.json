@@ -2,9 +2,9 @@
   "$comment": "Business details shown on the site and in emails. operatorName/operatorAddress: fill in your legal name (or company) and address before launch; EU/UK consumer law requires traders to identify themselves.",
   "name": "KeepItAll",
   "supportEmail": "support@getkeepitall.com",
-  "operatorName": "KeepItAll",
+  "operatorName": "Roberto Pérez",
   "operatorCountry": "Spain",
-  "operatorAddress": null,
+  "operatorAddress": "C/ Orixe 52, 48015 Bilbao, Spain",
   "refundDays": 14,
   "legalUpdated": "2026-10-23"
 }

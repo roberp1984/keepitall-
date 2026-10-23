@@ -91,7 +91,7 @@ Nothing below is shown to users until marked verified, but launch depends on it:
 - [ ] **Airline claim form URLs / emails** — `data/airlines.json` (all `null`, `verified: false`).
 - [ ] **Enforcement bodies and ADR schemes** — `data/enforcement-bodies.json` (URLs for FR and GR missing; ADR membership is airline-specific).
 - [ ] **Case-law references** in `lib/rules/config/extraordinary.json` and `lib/letters/citations.ts` (Sturgeon, Nelson, Wallentin-Hermann, etc.).
-- [ ] **Legal pages** — `app/legal/{terms,privacy,refunds}` are complete but need a lawyer's review; set `operatorName` / `operatorAddress` in `lib/site.json` (traders must identify themselves).
+- [ ] **Legal pages** — `app/legal/{terms,privacy,refunds}` are complete but need a lawyer's review.
 - [ ] **Retention periods** — `lib/claims/lifecycle.json` (personal details currently kept 2 years).
 - [ ] **Open legal questions**
   - UK261 inbound cover for Norwegian, Icelandic and Swiss carriers (currently *not* covered; `inboundCarrierGroups` in `rulesets.json`).
