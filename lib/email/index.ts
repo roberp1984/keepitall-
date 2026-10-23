@@ -1,4 +1,5 @@
 import { DISCLAIMER } from "../legal";
+import { SUPPORT_EMAIL } from "../site";
 
 export interface EmailMessage {
   to: string;
@@ -6,6 +7,8 @@ export interface EmailMessage {
   text: string;
   html: string;
   attachments?: { filename: string; content: Buffer }[];
+  /** Where customer replies go. */
+  replyTo?: string;
 }
 
 export interface EmailSender {
@@ -21,6 +24,7 @@ function html(paragraphs: string[], link: { href: string; label: string }): stri
   const body = paragraphs.map((p) => `<p style="margin:0 0 16px">${escape(p)}</p>`).join("");
   return `<!doctype html><html><body style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#1a2b25;max-width:560px;margin:0 auto;padding:24px">
 ${body}<p style="margin:24px 0"><a href="${escape(link.href)}" style="background:#0f7a5a;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">${escape(link.label)}</a></p>
+<p style="font-size:13px;color:#5b6b65">Questions? Reply to this email or write to ${escape(SUPPORT_EMAIL)}.</p>
 <p style="font-size:13px;color:#5b6b65">${escape(DISCLAIMER)}</p></body></html>`;
 }
 
@@ -32,8 +36,9 @@ export function paymentConfirmedEmail(to: string, packUrl: string): EmailMessage
   ];
   return {
     to,
+    replyTo: SUPPORT_EMAIL,
     subject: "Your KeepItAll claim pack is ready to complete",
-    text: `${paragraphs.join("\n\n")}\n\n${packUrl}\n\n${DISCLAIMER}`,
+    text: `${paragraphs.join("\n\n")}\n\n${packUrl}\n\nQuestions? Reply to this email or write to ${SUPPORT_EMAIL}.\n\n${DISCLAIMER}`,
     html: html(paragraphs, { href: packUrl, label: "Complete your claim pack" }),
   };
 }
@@ -46,8 +51,9 @@ export function packReadyEmail(to: string, packUrl: string, flightNumber: string
   ];
   return {
     to,
+    replyTo: SUPPORT_EMAIL,
     subject: `Your claim pack for flight ${flightNumber}`,
-    text: `${paragraphs.join("\n\n")}\n\n${packUrl}\n\n${DISCLAIMER}`,
+    text: `${paragraphs.join("\n\n")}\n\n${packUrl}\n\nQuestions? Reply to this email or write to ${SUPPORT_EMAIL}.\n\n${DISCLAIMER}`,
     html: html(paragraphs, { href: packUrl, label: "Open your claim pack" }),
     attachments: pdf ? [{ filename: `claim-pack-${flightNumber}.pdf`, content: pdf }] : undefined,
   };
@@ -75,6 +81,7 @@ export function followUpEmail(
   const footer = `Don't want these reminders? ${optOutUrl}`;
   return {
     to,
+    replyTo: SUPPORT_EMAIL,
     subject: kind === "reply_check" ? `Has the airline replied about flight ${flightNumber}?` : `Time to escalate your claim for flight ${flightNumber}?`,
     text: `${paragraphs.join("\n\n")}\n\n${packUrl}\n\n${footer}\n\n${DISCLAIMER}`,
     html: html([...paragraphs, footer], { href: packUrl, label: "Open your claim pack" }),

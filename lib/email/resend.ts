@@ -13,6 +13,7 @@ export function resendSender(config: EmailConfig, client: Pick<Resend, "emails">
         text: message.text,
         html: message.html,
         attachments: message.attachments,
+        replyTo: message.replyTo,
       });
       if (error) throw new Error(`Email failed: ${error.message}`);
     },

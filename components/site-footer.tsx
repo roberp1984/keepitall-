@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SUPPORT_EMAIL } from "@/lib/site";
 import { Disclaimer } from "./disclaimer";
 
 const LINKS = [
@@ -6,6 +7,7 @@ const LINKS = [
   { href: "/legal/disclaimer", label: "Disclaimer" },
   { href: "/legal/terms", label: "Terms" },
   { href: "/legal/privacy", label: "Privacy" },
+  { href: "/legal/refunds", label: "Refunds" },
 ];
 
 export function SiteFooter() {
@@ -20,6 +22,9 @@ export function SiteFooter() {
             </Link>
           ))}
         </nav>
+        <p className="text-sm text-muted-foreground">
+          Questions? <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-foreground underline">{SUPPORT_EMAIL}</a>
+        </p>
         <p className="text-xs text-muted-foreground">
           We are not affiliated with any airline. We never sell your data.
         </p>
