@@ -4,7 +4,7 @@ import { emailDomain, runSetupChecks, type EnvSnapshot, type SetupClients } from
 const env: EnvSnapshot = {
   siteUrl: "https://keepitall.example",
   supabase: true,
-  lemon: { storeId: "1", variantIds: { EUR: "10", GBP: "20" }, webhookSecret: true },
+  paddle: { environment: "production", priceIds: { EUR: "pri_eur", GBP: "pri_gbp" }, webhookSecret: true, clientToken: "live_abc" },
   emailFrom: "KeepItAll <claims@keepitall.example>",
   resend: true,
   anthropicModel: "claude-sonnet-5-5",
@@ -15,12 +15,13 @@ const env: EnvSnapshot = {
 function clients(overrides: Partial<SetupClients> = {}): SetupClients {
   return {
     probeClaims: vi.fn().mockResolvedValue(null),
-    lemonStore: vi.fn().mockResolvedValue({ name: "KeepItAll", currency: "EUR" }),
-    lemonVariant: vi.fn(async (id: string) =>
-      id === "10" ? { name: "EUR pack", price: 1900, status: "published" } : { name: "GBP pack", price: 1800, status: "published" },
+    paddlePrice: vi.fn(async (id: string) =>
+      id === "pri_eur"
+        ? { name: "EU261 claim", amountCents: 1900, currency: "EUR", status: "active", recurring: false }
+        : { name: "UK261 claim", amountCents: 1800, currency: "EUR", status: "active", recurring: false },
     ),
-    lemonWebhooks: vi.fn().mockResolvedValue([
-      { url: "https://keepitall.example/api/webhooks/lemonsqueezy", events: ["order_created", "order_refunded"], testMode: true },
+    paddleWebhooks: vi.fn().mockResolvedValue([
+      { url: "https://keepitall.example/api/webhooks/paddle", events: ["transaction.completed", "adjustment.created", "adjustment.updated"], active: true },
     ]),
     resendDomains: vi.fn().mockResolvedValue([{ name: "keepitall.example", status: "verified" }]),
     anthropicModel: vi.fn().mockResolvedValue(undefined),
@@ -32,22 +33,21 @@ const byService = async (e: EnvSnapshot, c: SetupClients, origin: string | null 
   Object.fromEntries((await runSetupChecks(e, c, origin)).map((r) => [r.service, r]));
 
 describe("runSetupChecks", () => {
-  it("passes a fully configured setup where both variants match the advertised prices", async () => {
+  it("passes a fully configured setup where both prices match the advertised prices", async () => {
     const r = await byService(env, clients());
     expect(Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.status]))).toEqual({
       "Site URL": "ok",
       Supabase: "ok",
-      "Lemon Squeezy": "ok",
-      "Lemon Squeezy · EUR price": "ok",
-      "Lemon Squeezy · GBP price": "ok",
-      "Lemon Squeezy · webhook": "ok",
+      Paddle: "ok",
+      "Paddle · EUR price": "ok",
+      "Paddle · GBP price": "ok",
+      "Paddle · webhook": "ok",
       Resend: "ok",
       Anthropic: "ok",
       PostHog: "ok",
       Cron: "ok",
     });
-    expect(r["Lemon Squeezy · GBP price"]!.detail).toBe("Variant “GBP pack” charges 18.00 EUR, matching the site.");
-    expect(r["Lemon Squeezy · webhook"]!.detail).toContain("(test mode)");
+    expect(r["Paddle · GBP price"]!.detail).toBe("Price “UK261 claim” charges 18.00 EUR, matching the site.");
   });
 
   it("points to the right migration when tables or columns are missing", async () => {
@@ -60,35 +60,35 @@ describe("runSetupChecks", () => {
     expect(missingColumns.Supabase!.detail).toContain("20261022010000_lifecycle.sql");
   });
 
-  it("flags wrong prices, unpublished variants and webhook problems", async () => {
+  it("flags wrong prices, inactive or recurring prices and webhook problems", async () => {
     const r = await byService(
       env,
       clients({
-        lemonVariant: vi.fn(async (id: string) =>
-          id === "10" ? { name: "EUR pack", price: 2500, status: "published" } : { name: "GBP pack", price: 2000, status: "draft" },
+        paddlePrice: vi.fn(async (id: string) =>
+          id === "pri_eur"
+            ? { name: "EU261 claim", amountCents: 2500, currency: "EUR", status: "active", recurring: false }
+            : { name: "UK261 claim", amountCents: 1800, currency: "EUR", status: "archived", recurring: false },
         ),
-        lemonWebhooks: vi.fn().mockResolvedValue([{ url: "https://keepitall.example/api/webhooks/lemonsqueezy", events: ["order_created"], testMode: false }]),
+        paddleWebhooks: vi.fn().mockResolvedValue([{ url: "https://keepitall.example/api/webhooks/paddle", events: ["transaction.completed"], active: true }]),
       }),
     );
-    expect(r["Lemon Squeezy · EUR price"]).toMatchObject({ status: "fail" });
-    expect(r["Lemon Squeezy · EUR price"]!.detail).toContain("the site shows 19.00 EUR");
-    expect(r["Lemon Squeezy · GBP price"]).toMatchObject({ status: "fail" });
-    expect(r["Lemon Squeezy · webhook"]).toMatchObject({ status: "fail", detail: "Webhook is missing events: order_refunded." });
+    expect(r["Paddle · EUR price"]).toMatchObject({ status: "fail" });
+    expect(r["Paddle · EUR price"]!.detail).toContain("the site shows 19.00 EUR");
+    expect(r["Paddle · GBP price"]).toMatchObject({ status: "fail", detail: "Price “UK261 claim” is archived; activate it." });
+    expect(r["Paddle · webhook"]).toMatchObject({ status: "fail", detail: "Destination is missing events: adjustment.created, adjustment.updated." });
 
-    const none = await byService(env, clients({ lemonWebhooks: vi.fn().mockResolvedValue([]) }));
-    expect(none["Lemon Squeezy · webhook"]!.detail).toBe("No webhook points to https://keepitall.example/api/webhooks/lemonsqueezy.");
+    const recurring = await byService(env, clients({ paddlePrice: vi.fn().mockResolvedValue({ name: "Sub", amountCents: 1900, currency: "EUR", status: "active", recurring: true }) }));
+    expect(recurring["Paddle · EUR price"]!.detail).toContain("must be one-time");
+
+    const none = await byService(env, clients({ paddleWebhooks: vi.fn().mockResolvedValue([]) }));
+    expect(none["Paddle · webhook"]!.detail).toBe("No notification destination points to https://keepitall.example/api/webhooks/paddle.");
   });
 
-  it("fails if the store charges in a different currency from the site", async () => {
-    const r = await byService(env, clients({ lemonStore: vi.fn().mockResolvedValue({ name: "KeepItAll", currency: "GBP" }) }));
-    expect(r["Lemon Squeezy · EUR price"]).toMatchObject({ status: "fail" });
-    expect(r["Lemon Squeezy · EUR price"]!.detail).toContain("Set the store currency to EUR");
-  });
-
-  it("stops Lemon checks if the store can't be loaded", async () => {
-    const r = await runSetupChecks(env, clients({ lemonStore: vi.fn().mockRejectedValue(new Error("401 Unauthenticated")) }));
-    const lemon = r.filter((x) => x.service.startsWith("Lemon"));
-    expect(lemon).toEqual([{ service: "Lemon Squeezy", status: "fail", detail: "Can't load store 1: 401 Unauthenticated" }]);
+  it("checks the client token matches the API key's environment", async () => {
+    const sandbox = { ...env.paddle!, environment: "sandbox" as const };
+    expect((await byService({ ...env, paddle: sandbox }, clients())).Paddle).toMatchObject({ status: "fail" });
+    expect((await byService({ ...env, paddle: { ...sandbox, clientToken: "test_abc" } }, clients())).Paddle).toMatchObject({ status: "warn" });
+    expect((await byService({ ...env, paddle: { ...env.paddle!, clientToken: null } }, clients())).Paddle).toMatchObject({ status: "fail" });
   });
 
   it("checks the Resend domain", async () => {
@@ -99,12 +99,12 @@ describe("runSetupChecks", () => {
   });
 
   it("treats optional services as skipped and required ones as failed when unset", async () => {
-    const bare: EnvSnapshot = { siteUrl: null, supabase: false, lemon: null, emailFrom: null, resend: false, anthropicModel: null, posthogKey: null, cronSecretLength: 0 };
+    const bare: EnvSnapshot = { siteUrl: null, supabase: false, paddle: null, emailFrom: null, resend: false, anthropicModel: null, posthogKey: null, cronSecretLength: 0 };
     const c = clients();
     const r = await byService(bare, c, null);
     expect(r["Site URL"]!.status).toBe("fail");
     expect(r.Supabase!.status).toBe("fail");
-    expect(r["Lemon Squeezy"]!.status).toBe("fail");
+    expect(r.Paddle!.status).toBe("fail");
     expect(r.Resend!.status).toBe("warn");
     expect(r.Anthropic!.status).toBe("skip");
     expect(r.PostHog!.status).toBe("skip");

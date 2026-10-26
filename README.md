@@ -6,7 +6,7 @@ Product rules and scope live in [`CLAUDE.md`](./CLAUDE.md). The most important o
 
 ## Stack
 
-Next.js 16 (App Router, Cache Components) · TypeScript (strict) · Tailwind 4 · shadcn/ui · Supabase · Lemon Squeezy · Anthropic API · Resend · `@react-pdf/renderer` · PostHog · Vitest · Vercel
+Next.js 16 (App Router, Cache Components) · TypeScript (strict) · Tailwind 4 · shadcn/ui · Supabase · Paddle · Anthropic API · Resend · `@react-pdf/renderer` · PostHog · Vitest · Vercel
 
 ## Getting started
 
@@ -37,7 +37,7 @@ CI (`.github/workflows/ci.yml`) runs all four checks on every push.
 |---|---|---|
 | Site | `NEXT_PUBLIC_SITE_URL` | Your public URL — used in emails, checkout redirects and the sitemap. Must be set **at build time** (the sitemap and robots.txt are prerendered). |
 | Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Run every file in `supabase/migrations/` in order. All tables have RLS on with **no policies**: only the server (service role) can read or write. |
-| Lemon Squeezy | `LEMONSQUEEZY_API_KEY`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_VARIANT_ID_EUR`, `LEMONSQUEEZY_VARIANT_ID_GBP`, `LEMONSQUEEZY_WEBHOOK_SECRET` | One product with two variants in a EUR store: EU261 claims 19.00, UK261 claims 18.00 (must match `lib/pricing.json`). Webhook → `<site>/api/webhooks/lemonsqueezy`, events `order_created` and `order_refunded`. |
+| Paddle | `PADDLE_API_KEY`, `PADDLE_CLIENT_TOKEN`, `PADDLE_PRICE_ID_EUR`, `PADDLE_PRICE_ID_GBP`, `PADDLE_WEBHOOK_SECRET` (optional `PADDLE_ENVIRONMENT`) | One product with two one-time EUR prices: EU261 claims 19.00, UK261 claims 18.00 (must match `lib/pricing.json`). Notification destination → `<site>/api/webhooks/paddle`, events `transaction.completed`, `adjustment.created`, `adjustment.updated`. Default payment link → `<site>/pay`. |
 | Resend | `RESEND_API_KEY`, `EMAIL_FROM` | Verify your sending domain. Without it, nothing is emailed but the pack page still works. |
 | Anthropic | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` (default `claude-sonnet-5-5`) | Optional. Without it, the claim letter uses the static template. |
 | PostHog | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | Enable **cookieless mode** in the project settings, or events are dropped. |
@@ -51,9 +51,9 @@ Check a deployment with `CRON_SECRET=… npm run setup:check -- https://your-sit
 /check (wizard) ──► /result/<token>          token = base64url wizard answers, no personal data
                         │  "Get your claim pack"  (server action re-assesses server-side)
                         ▼
-                  Supabase claim (unguessable 256-bit pack token) ──► Lemon Squeezy checkout
+                  Supabase claim (unguessable 256-bit pack token) ──► Paddle transaction → overlay checkout
                                                                            │
-   /api/webhooks/lemonsqueezy  ◄── order_created (HMAC-verified) ─────────┘
+   /api/webhooks/paddle  ◄── transaction.completed (HMAC-verified) ─────────────┘
         marks paid (single source of truth), emails the private /pack/<token> link
                         ▼
    /pack/<token>  waits for payment → details form → builds pack once → stored,
@@ -70,7 +70,7 @@ Check a deployment with `CRON_SECRET=… npm run setup:check -- https://your-sit
 | `lib/letters/` | Claim facts, deterministic templates, LLM drafting with placeholder validation and template fallback, claim pack assembly. |
 | `lib/check/`, `lib/result/` | Wizard answers, URL token, step validation, result-screen view model. |
 | `lib/claims/` | Claim store (Supabase + in-memory), checkout/payment/details service, follow-ups and retention (`lifecycle.json`). |
-| `lib/payments/`, `lib/email/`, `lib/pdf/` | Lemon Squeezy, Resend + email templates, PDF document. |
+| `lib/payments/`, `lib/email/`, `lib/pdf/` | Paddle, Resend + email templates, PDF document. |
 | `lib/server/deps.ts` | Builds real dependencies from env (the only place integrations are wired). |
 | `data/` | `airports.json` (generated), `airlines.json`, `enforcement-bodies.json`. |
 | `app/`, `components/` | Pages, routes and UI. No business logic in components. |

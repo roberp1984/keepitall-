@@ -25,7 +25,7 @@ compensation **themselves** under EU261 and UK261, instead of paying claim compa
 ## Stack
 - Next.js (App Router) + TypeScript (strict) + Tailwind + shadcn/ui
 - Supabase (Postgres) for claims and orders
-- Lemon Squeezy for payments (merchant of record → handles VAT)
+- Paddle for payments (merchant of record → handles VAT; Lemon Squeezy rejected the store)
 - Anthropic API for letter drafting (model: `claude-sonnet-5-5`)
 - Resend for transactional email
 - `@react-pdf/renderer` for PDF generation
@@ -43,7 +43,7 @@ compensation **themselves** under EU261 and UK261, instead of paying claim compa
 3. **Result screen**: regime (EU261 / UK261 / not covered), amount per passenger,
    number of passengers → total, strength of case (strong / possible / unlikely + why),
    and deadline warning if relevant.
-4. **Paywall**: "Get your claim pack — €19". Lemon Squeezy checkout, guest checkout allowed.
+4. **Paywall**: "Get your claim pack — €19". Paddle checkout, guest checkout allowed.
 5. **After payment**: collect names of passengers, booking reference, email, postal address.
 6. **Claim pack** (shown on page + emailed + PDF):
    - Claim letter to the airline (citing the regulation and articles)
@@ -102,7 +102,7 @@ Start with the 30 airlines with the most delays in Europe; human verifies URLs.
 - Small, pure functions in `/lib`. No business logic inside React components.
 - Server actions or route handlers for anything touching payments, DB or the LLM.
 - Secrets only in env vars. Provide `.env.example`.
-- Webhook from Lemon Squeezy is the single source of truth for "paid".
+- Webhook from Paddle is the single source of truth for "paid".
 - Run `npm run lint`, `npm run typecheck` and `npm test` before saying a task is done.
 
 ## Out of scope for MVP

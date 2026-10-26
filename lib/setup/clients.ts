@@ -1,27 +1,28 @@
 // Server-only: real SDK clients for the setup checks.
 import Anthropic from "@anthropic-ai/sdk";
-import { getStore, getVariant, lemonSqueezySetup, listWebhooks } from "@lemonsqueezy/lemonsqueezy.js";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
-import { emailConfig, paymentsConfig, siteUrl, supabaseConfig } from "../env";
+import { emailConfig, paddleEnvironment, siteUrl, supabaseConfig } from "../env";
+import { paddleApi } from "../payments/paddle";
 import { DEFAULT_LETTER_MODEL } from "../letters/anthropic";
 import type { EnvSnapshot, SetupClients } from "./checks";
 
 const read = (key: string) => process.env[key]?.trim() || null;
 
 export function envSnapshot(): EnvSnapshot {
-  const payments = paymentsConfig();
-  const lemonPartial = read("LEMONSQUEEZY_API_KEY") && read("LEMONSQUEEZY_STORE_ID");
+  const apiKey = read("PADDLE_API_KEY");
+  const eur = read("PADDLE_PRICE_ID_EUR");
+  const gbp = read("PADDLE_PRICE_ID_GBP");
   return {
     siteUrl: read("NEXT_PUBLIC_SITE_URL") ? siteUrl() : null,
     supabase: supabaseConfig() !== null,
-    lemon: payments
-      ? { storeId: payments.storeId, variantIds: payments.variantIds, webhookSecret: true }
-      : lemonPartial && read("LEMONSQUEEZY_VARIANT_ID_EUR") && read("LEMONSQUEEZY_VARIANT_ID_GBP")
+    paddle:
+      apiKey && eur && gbp
         ? {
-            storeId: read("LEMONSQUEEZY_STORE_ID")!,
-            variantIds: { EUR: read("LEMONSQUEEZY_VARIANT_ID_EUR")!, GBP: read("LEMONSQUEEZY_VARIANT_ID_GBP")! },
-            webhookSecret: false,
+            environment: paddleEnvironment(apiKey),
+            priceIds: { EUR: eur, GBP: gbp },
+            webhookSecret: Boolean(read("PADDLE_WEBHOOK_SECRET")),
+            clientToken: read("PADDLE_CLIENT_TOKEN"),
           }
         : null,
     emailFrom: read("EMAIL_FROM"),
@@ -32,14 +33,22 @@ export function envSnapshot(): EnvSnapshot {
   };
 }
 
-function unwrap<T>(res: { data: T | null; error: Error | null }): T {
-  if (res.error || !res.data) throw res.error ?? new Error("empty response");
-  return res.data;
+interface PaddlePrice {
+  description: string;
+  status: string;
+  billing_cycle: unknown;
+  unit_price: { amount: string; currency_code: string };
+}
+
+interface PaddleDestination {
+  destination: string;
+  active: boolean;
+  subscribed_events: { name: string }[];
 }
 
 export function realSetupClients(): SetupClients {
-  const lemonKey = read("LEMONSQUEEZY_API_KEY");
-  if (lemonKey) lemonSqueezySetup({ apiKey: lemonKey });
+  const apiKey = read("PADDLE_API_KEY") ?? "";
+  const paddle = { apiKey, environment: paddleEnvironment(apiKey) };
   return {
     async probeClaims(columns) {
       const db = supabaseConfig();
@@ -48,20 +57,19 @@ export function realSetupClients(): SetupClients {
       const { error } = await client.from("claims").select(columns).limit(1);
       return error ? error.message : null;
     },
-    async lemonStore(storeId) {
-      const a = unwrap(await getStore(storeId)).data.attributes;
-      return { name: a.name, currency: a.currency };
+    async paddlePrice(priceId) {
+      const p = await paddleApi<PaddlePrice>(paddle, `/prices/${encodeURIComponent(priceId)}`);
+      return {
+        name: p.description,
+        amountCents: Number(p.unit_price.amount),
+        currency: p.unit_price.currency_code,
+        status: p.status,
+        recurring: p.billing_cycle != null,
+      };
     },
-    async lemonVariant(variantId) {
-      const a = unwrap(await getVariant(variantId)).data.attributes;
-      return { name: a.name, price: a.price, status: a.status };
-    },
-    async lemonWebhooks(storeId) {
-      return unwrap(await listWebhooks({ filter: { storeId } })).data.map((w) => ({
-        url: w.attributes.url,
-        events: w.attributes.events,
-        testMode: w.attributes.test_mode,
-      }));
+    async paddleWebhooks() {
+      const list = await paddleApi<PaddleDestination[]>(paddle, "/notification-settings");
+      return list.map((d) => ({ url: d.destination, events: d.subscribed_events.map((e) => e.name), active: d.active }));
     },
     async resendDomains() {
       const { data, error } = await new Resend(read("RESEND_API_KEY")!).domains.list();

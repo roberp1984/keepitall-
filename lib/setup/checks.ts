@@ -14,7 +14,12 @@ export interface CheckResult {
 export interface EnvSnapshot {
   siteUrl: string | null;
   supabase: boolean;
-  lemon: { storeId: string; variantIds: Record<Currency, string>; webhookSecret: boolean } | null;
+  paddle: {
+    environment: "sandbox" | "production";
+    priceIds: Record<Currency, string>;
+    webhookSecret: boolean;
+    clientToken: string | null;
+  } | null;
   emailFrom: string | null;
   resend: boolean;
   anthropicModel: string | null;
@@ -25,9 +30,8 @@ export interface EnvSnapshot {
 export interface SetupClients {
   /** `select <columns> from claims limit 1`; returns the error message, if any. */
   probeClaims(columns: string): Promise<string | null>;
-  lemonStore(storeId: string): Promise<{ name: string; currency: string }>;
-  lemonVariant(variantId: string): Promise<{ name: string; price: number; status: string }>;
-  lemonWebhooks(storeId: string): Promise<{ url: string; events: string[]; testMode: boolean }[]>;
+  paddlePrice(priceId: string): Promise<{ name: string; amountCents: number; currency: string; status: string; recurring: boolean }>;
+  paddleWebhooks(): Promise<{ url: string; events: string[]; active: boolean }[]>;
   resendDomains(): Promise<{ name: string; status: string }[]>;
   anthropicModel(model: string): Promise<void>;
 }
@@ -36,7 +40,7 @@ const MIGRATIONS = {
   init: "supabase/migrations/20261022000000_init.sql",
   lifecycle: "supabase/migrations/20261022010000_lifecycle.sql",
 };
-const WEBHOOK_EVENTS = ["order_created", "order_refunded"];
+const WEBHOOK_EVENTS = ["transaction.completed", "adjustment.created", "adjustment.updated"];
 
 const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err)).slice(0, 200);
 
@@ -71,61 +75,52 @@ async function checkSupabase(env: EnvSnapshot, c: SetupClients): Promise<CheckRe
   }
 }
 
-async function checkLemon(env: EnvSnapshot, c: SetupClients): Promise<CheckResult[]> {
-  const service = "Lemon Squeezy";
-  if (!env.lemon) {
-    return [{ service, status: "fail", detail: "Set LEMONSQUEEZY_API_KEY, _STORE_ID, _VARIANT_ID_EUR, _VARIANT_ID_GBP and _WEBHOOK_SECRET." }];
+async function checkPaddle(env: EnvSnapshot, c: SetupClients): Promise<CheckResult[]> {
+  const service = "Paddle";
+  if (!env.paddle) {
+    return [{ service, status: "fail", detail: "Set PADDLE_API_KEY, PADDLE_PRICE_ID_EUR and PADDLE_PRICE_ID_GBP (plus PADDLE_CLIENT_TOKEN and PADDLE_WEBHOOK_SECRET)." }];
   }
+  const { environment, clientToken } = env.paddle;
+  const tokenPrefix = environment === "sandbox" ? "test_" : "live_";
   const results: CheckResult[] = [];
-  let storeCurrency: string;
-  try {
-    const store = await c.lemonStore(env.lemon.storeId);
-    storeCurrency = store.currency.toUpperCase();
-    results.push({ service, status: "ok", detail: `Store “${store.name}” (currency ${storeCurrency}).` });
-  } catch (err) {
-    return [{ service, status: "fail", detail: `Can't load store ${env.lemon.storeId}: ${errorText(err)}` }];
-  }
+  if (!clientToken) results.push({ service, status: "fail", detail: "PADDLE_CLIENT_TOKEN is not set: the checkout can't open." });
+  else if (!clientToken.startsWith(tokenPrefix)) {
+    results.push({ service, status: "fail", detail: `The API key is for ${environment} but the client token isn't (${environment} tokens start with ${tokenPrefix}).` });
+  } else results.push({ service, status: environment === "sandbox" ? "warn" : "ok", detail: `${environment === "sandbox" ? "Sandbox (test payments only)" : "Live"}; client token matches.` });
 
   for (const currency of ["EUR", "GBP"] as const) {
     const label = `${service} · ${currency} price`;
     try {
-      const v = await c.lemonVariant(env.lemon.variantIds[currency]);
-      const charged = `${(v.price / 100).toFixed(2)} ${storeCurrency}`;
+      const p = await c.paddlePrice(env.paddle.priceIds[currency]);
+      const charged = `${(p.amountCents / 100).toFixed(2)} ${p.currency}`;
       const expected = packPrice(currency);
       const advertised = `${expected.amount.toFixed(2)} ${expected.currency}`;
-      if (v.status !== "published") {
-        results.push({ service: label, status: "fail", detail: `Variant “${v.name}” is ${v.status}; publish it.` });
-      } else if (storeCurrency !== expected.currency) {
-        results.push({
-          service: label,
-          status: "fail",
-          detail: `Variant “${v.name}” charges ${charged}, but the site shows ${advertised}. Set the store currency to ${expected.currency} or update lib/pricing.json.`,
-        });
-      } else if (v.price !== Math.round(expected.amount * 100)) {
-        results.push({ service: label, status: "fail", detail: `Variant “${v.name}” charges ${charged}; the site shows ${advertised}. Make them match.` });
-      } else {
-        results.push({ service: label, status: "ok", detail: `Variant “${v.name}” charges ${charged}, matching the site.` });
-      }
+      if (p.status !== "active") results.push({ service: label, status: "fail", detail: `Price “${p.name}” is ${p.status}; activate it.` });
+      else if (p.recurring) results.push({ service: label, status: "fail", detail: `Price “${p.name}” is recurring; it must be one-time.` });
+      else if (p.currency !== expected.currency || p.amountCents !== Math.round(expected.amount * 100)) {
+        results.push({ service: label, status: "fail", detail: `Price “${p.name}” charges ${charged}; the site shows ${advertised}. Make them match.` });
+      } else results.push({ service: label, status: "ok", detail: `Price “${p.name}” charges ${charged}, matching the site.` });
     } catch (err) {
-      results.push({ service: label, status: "fail", detail: `Can't load variant: ${errorText(err)}` });
+      results.push({ service: label, status: "fail", detail: `Can't load price: ${errorText(err)}` });
     }
   }
 
   const label = `${service} · webhook`;
-  if (!env.lemon.webhookSecret) {
-    results.push({ service: label, status: "fail", detail: "LEMONSQUEEZY_WEBHOOK_SECRET is not set." });
+  if (!env.paddle.webhookSecret) {
+    results.push({ service: label, status: "fail", detail: "PADDLE_WEBHOOK_SECRET is not set." });
   } else if (!env.siteUrl) {
     results.push({ service: label, status: "skip", detail: "Set NEXT_PUBLIC_SITE_URL to check the webhook URL." });
   } else {
-    const expected = `${env.siteUrl}/api/webhooks/lemonsqueezy`;
+    const expected = `${env.siteUrl}/api/webhooks/paddle`;
     try {
-      const hook = (await c.lemonWebhooks(env.lemon.storeId)).find((w) => w.url === expected);
+      const hook = (await c.paddleWebhooks()).find((w) => w.url === expected);
       const missing = hook ? WEBHOOK_EVENTS.filter((e) => !hook.events.includes(e)) : WEBHOOK_EVENTS;
-      if (!hook) results.push({ service: label, status: "fail", detail: `No webhook points to ${expected}.` });
-      else if (missing.length) results.push({ service: label, status: "fail", detail: `Webhook is missing events: ${missing.join(", ")}.` });
-      else results.push({ service: label, status: "ok", detail: `${expected}${hook.testMode ? " (test mode)" : ""}. The signing secret can't be checked remotely: it must match LEMONSQUEEZY_WEBHOOK_SECRET.` });
+      if (!hook) results.push({ service: label, status: "fail", detail: `No notification destination points to ${expected}.` });
+      else if (!hook.active) results.push({ service: label, status: "fail", detail: `The destination ${expected} is inactive.` });
+      else if (missing.length) results.push({ service: label, status: "fail", detail: `Destination is missing events: ${missing.join(", ")}.` });
+      else results.push({ service: label, status: "ok", detail: `${expected}. The secret key can't be checked remotely: it must match PADDLE_WEBHOOK_SECRET.` });
     } catch (err) {
-      results.push({ service: label, status: "fail", detail: `Can't list webhooks: ${errorText(err)}` });
+      results.push({ service: label, status: "fail", detail: `Can't list notification destinations: ${errorText(err)}` });
     }
   }
   return results;
@@ -173,11 +168,11 @@ function checkCron(env: EnvSnapshot): CheckResult {
 
 /** Read-only checks of every integration. */
 export async function runSetupChecks(env: EnvSnapshot, clients: SetupClients, requestOrigin: string | null = null): Promise<CheckResult[]> {
-  const [supabase, lemon, resend, anthropic] = await Promise.all([
+  const [supabase, paddle, resend, anthropic] = await Promise.all([
     checkSupabase(env, clients),
-    checkLemon(env, clients),
+    checkPaddle(env, clients),
     checkResend(env, clients),
     checkAnthropic(env, clients),
   ]);
-  return [checkSite(env, requestOrigin), supabase, ...lemon, resend, anthropic, checkPosthog(env), checkCron(env)];
+  return [checkSite(env, requestOrigin), supabase, ...paddle, resend, anthropic, checkPosthog(env), checkCron(env)];
 }
