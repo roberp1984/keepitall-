@@ -42,19 +42,27 @@ export async function GET(request: Request) {
       return Response.json({ replayed: await paddleApi(payments, `/notifications/${id}/replay`, { method: "POST" }) });
     }
 
-    const destinations = await paddleApi<Destination[]>(payments, "/notification-settings");
-    const transactions = await paddleApi<{ id: string; status: string; created_at: string; custom_data: unknown }[]>(
-      payments,
-      "/transactions?order_by=created_at[DESC]&per_page=5",
+    const soft = <T,>(p: Promise<T>) => p.catch((err: Error) => ({ error: err.message }) as const);
+    const destinations = await soft(paddleApi<Destination[]>(payments, "/notification-settings"));
+    const transactions = await soft(
+      paddleApi<{ id: string; status: string; created_at: string; custom_data: unknown }[]>(
+        payments,
+        "/transactions?order_by=created_at[DESC]&per_page=5",
+      ),
     );
-    const notifications = await paddleApi<
-      { id: string; type: string; status: string; times_attempted: number; last_attempt_at: string | null; notification_setting_id: string }[]
-    >(payments, "/notifications?per_page=10");
+    const notifications = await soft(
+      paddleApi<
+        { id: string; type: string; status: string; times_attempted: number; last_attempt_at: string | null; notification_setting_id: string }[]
+      >(payments, "/notifications?per_page=10"),
+    );
     return Response.json({
       environment: payments.environment,
-      destinations: destinations.map(summarize),
-      transactions: transactions.map((t) => ({ id: t.id, status: t.status, created_at: t.created_at, custom_data: t.custom_data })),
-      notifications: notifications.map((n) => ({
+      destinations: "error" in destinations ? destinations : destinations.map(summarize),
+      transactions:
+        "error" in transactions
+          ? transactions
+          : transactions.map((t) => ({ id: t.id, status: t.status, created_at: t.created_at, custom_data: t.custom_data })),
+      notifications: "error" in notifications ? notifications : notifications.map((n) => ({
         id: n.id,
         type: n.type,
         status: n.status,
