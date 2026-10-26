@@ -73,7 +73,7 @@ export function createSupabaseStore(config: SupabaseConfig, client?: SupabaseCli
     async recordPaidOrder(order) {
       const { error } = await db.from("orders").insert({
         claim_id: order.claimId,
-        provider: "paddle",
+        provider: "stripe",
         provider_order_id: order.providerOrderId,
         status: "paid",
         email: order.email,

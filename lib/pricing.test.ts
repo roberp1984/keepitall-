@@ -3,7 +3,7 @@ import { feeComparison } from "@/lib/marketing";
 import { packPrice } from "@/lib/pricing";
 
 describe("packPrice", () => {
-  it("charges EU261 claims €19 and UK261 claims €18 (the Lemon Squeezy store is in EUR)", () => {
+  it("charges EU261 claims €19 and UK261 claims €18 (both prices are in EUR)", () => {
     expect(packPrice("EUR")).toEqual({ amount: 19, currency: "EUR" });
     expect(packPrice("GBP")).toEqual({ amount: 18, currency: "EUR" });
   });

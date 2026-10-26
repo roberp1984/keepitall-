@@ -6,7 +6,7 @@ import { SITE } from "@/lib/site";
 export const metadata: Metadata = { title: "Privacy policy" };
 
 const PROCESSORS = [
-  [SITE.paymentProvider, "Payments, receipts and VAT (as merchant of record, it is also a controller for payment data)", "UK"],
+  [SITE.paymentProvider, "Card payments and fraud prevention (it is also an independent controller for payment data)", "EU (Ireland), with transfers to the USA"],
   ["Supabase", "Database for claims and orders", "London, UK"],
   ["Vercel", "Website hosting", "London, UK (global network)"],
   ["Resend", "Sending your emails", "EU (Ireland)"],
@@ -77,7 +77,7 @@ export default function PrivacyPage() {
             Claim pack details (names, booking reference, address): deleted {Math.round(retention.packDetailsDays / 365)}{" "}
             years after the pack is created, so you can come back to it while your claim runs.
           </li>
-          <li>Payment records: kept by {SITE.paymentProvider} as tax law requires.</li>
+          <li>Payment records: kept for the period tax law requires (usually 6 years in Spain) requires.</li>
         </ul>
         <p>You can ask us to delete your claim earlier at any time.</p>
       </LegalSection>

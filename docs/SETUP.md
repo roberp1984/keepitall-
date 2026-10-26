@@ -32,26 +32,24 @@ Keep a copy in your password manager: you'll need it for step 9.
    - `NEXT_PUBLIC_SUPABASE_URL` = Project URL
    - `SUPABASE_SERVICE_ROLE_KEY` = the **service_role** key. It's secret and server-only. The anon key is not used.
 
-## 4. Paddle: payments
+## 4. Stripe: payments
 
-Paddle is the merchant of record: it charges the customer, handles VAT and pays you out. It has two separate accounts: **sandbox** (test payments, works straight away, sandbox-vendors.paddle.com) and **live** (needs Paddle's business verification, which can take a few days, so start it early). Do everything below in sandbox first, then repeat in live (step 11).
+With Stripe **you are the seller**: Stripe processes the card payment, but VAT is your responsibility. Before taking live payments, register as self-employed and, with your tax adviser, for EU VAT OSS (EU customers) and UK VAT (UK customers). Stripe Tax can calculate it at checkout (`STRIPE_AUTOMATIC_TAX=true`).
 
-1. **Catalog → Products → New product** "Claim pack", tax category *Standard digital goods*, with two **one-time** prices in **EUR**:
+Do everything below in **test mode** first (toggle at the top of the dashboard), then repeat in live mode (step 11).
+
+1. **Product catalog → Add product** "Claim pack", with two **one-time** prices in **EUR**, tax behaviour **inclusive**:
    - EU261 claim: 19.00
    - UK261 claim: 18.00
 
-   The site shows exactly these prices, from `lib/pricing.json`. If you change one in Paddle, change it there too; `setup:check` fails if they differ.
-2. **Checkout → Checkout settings → Default payment link**: `https://<your site>/pay`.
-3. **Developer tools → Authentication**:
-   - **API keys → New API key** with permissions to write transactions and read customers, prices and notification settings. Add it to Vercel as `PADDLE_API_KEY` (Sensitive).
-   - **Client-side tokens → New client-side token**. Add it to Vercel as `PADDLE_CLIENT_TOKEN`. It's not secret: Paddle.js uses it in the browser.
-4. Add the two price IDs (`pri_…`) to Vercel: `PADDLE_PRICE_ID_EUR` (19.00) and `PADDLE_PRICE_ID_GBP` (18.00).
-5. **Developer tools → Notifications → New destination**:
-   - Type: webhook. URL: `https://<your site>/api/webhooks/paddle`
-   - Events: `transaction.completed`, `adjustment.created`, `adjustment.updated`
-   - Save, then copy its **secret key** to Vercel as `PADDLE_WEBHOOK_SECRET` (Sensitive).
-
-The environment is detected from the API key (sandbox keys contain `_sdbx_`); `PADDLE_ENVIRONMENT=sandbox|production` overrides it.
+   The site shows exactly these prices, from `lib/pricing.json`. If you change one in Stripe, change it there too; `setup:check` fails if they differ.
+2. Add the two price IDs (`price_…`) to Vercel: `STRIPE_PRICE_ID_EUR` (19.00) and `STRIPE_PRICE_ID_GBP` (18.00).
+3. **Developers → API keys**: add the **secret key** (`sk_test_…`) to Vercel as `STRIPE_SECRET_KEY` (Sensitive).
+4. **Developers → Webhooks → Add endpoint**:
+   - URL: `https://<your site>/api/webhooks/stripe`
+   - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `charge.refunded`
+   - Save, then reveal the **signing secret** (`whsec_…`) and add it to Vercel as `STRIPE_WEBHOOK_SECRET` (Sensitive).
+5. **Settings → Public details**: business name, support email and the links to your terms, privacy and refund pages. They appear on the checkout page and receipts.
 
 ## 5. Resend: email
 
@@ -91,19 +89,20 @@ It runs read-only checks on the server, using the real Vercel environment, and p
 ## 10. Test purchase (test mode)
 
 1. On the live site, check an eligible flight, e.g. London Heathrow → New York JFK on British Airways, arrived 5 hours late.
-2. Get the claim pack and pay with Paddle's test card `4242 4242 4242 4242`, any future expiry date, CVC `100`.
+2. Get the claim pack and pay with Stripe's test card `4242 4242 4242 4242`, any future expiry date, any CVC.
 3. Confirm, in order:
    - You land on "Confirming your payment" and within seconds see the details form.
    - The "payment confirmed" email arrives.
    - Submitting the details shows the pack. Download the PDF.
    - The "pack ready" email arrives with the PDF attached.
    - In Supabase, `claims` has a row with status `pack_ready`, and `orders` has one paid order.
-4. Refund the test transaction in Paddle (Transactions → the order → Refund), then approve it if asked. The pack page should then say the order was refunded.
+4. Refund the test payment in Stripe (Payments → the payment → Refund, full amount). The pack page should then say the order was refunded.
 
 ## 11. Go live
 
-1. Once Paddle has verified your live account, repeat step 4 there: product and prices, default payment link, API key, client-side token and notification destination. Live IDs, keys and tokens all differ from sandbox ones.
-2. Replace the five `PADDLE_*` variables in Vercel with the live values, then redeploy.
-3. Run `npm run setup:check` again, then make one real low-value purchase and refund it.
+1. Activate your Stripe account (business details, ID, bank account) and switch to **live mode**.
+2. Repeat step 4 in live mode: product and prices, secret key and webhook endpoint. Live IDs and secrets all differ from test ones.
+3. Replace the four `STRIPE_*` variables in Vercel with the live values, then redeploy.
+4. Run `npm run setup:check` again, then make one real low-value purchase and refund it.
 
 Before launch, also work through **"Must be verified by a human"** in the [README](../README.md).
