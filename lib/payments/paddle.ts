@@ -14,7 +14,7 @@ type Fetch = typeof fetch;
 export async function paddleApi<T>(
   config: Pick<PaymentsConfig, "apiKey" | "environment">,
   path: string,
-  init: { method?: "GET" | "POST"; body?: unknown } = {},
+  init: { method?: "GET" | "POST" | "PATCH"; body?: unknown } = {},
   fetchImpl: Fetch = fetch,
 ): Promise<T> {
   const res = await fetchImpl(`${API_BASE[config.environment]}${path}`, {
