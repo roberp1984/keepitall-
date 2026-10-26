@@ -3,6 +3,7 @@ import { SUPPORT_EMAIL } from "@/lib/site";
 import { Disclaimer } from "./disclaimer";
 
 const LINKS = [
+  { href: "/pricing", label: "Pricing" },
   { href: "/airlines", label: "Airlines" },
   { href: "/legal/disclaimer", label: "Disclaimer" },
   { href: "/legal/terms", label: "Terms" },

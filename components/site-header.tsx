@@ -7,9 +7,14 @@ export function SiteHeader() {
         <Link href="/" className="text-lg font-bold tracking-tight">
           Keep<span className="text-primary">ItAll</span>
         </Link>
-        <Link href="/check" className="text-sm font-medium text-primary hover:underline">
-          Check my flight
-        </Link>
+        <nav className="flex items-center gap-4">
+          <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+            Pricing
+          </Link>
+          <Link href="/check" className="text-sm font-medium text-primary hover:underline">
+            Check my flight
+          </Link>
+        </nav>
       </div>
     </header>
   );
