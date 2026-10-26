@@ -42,7 +42,7 @@ export default function TermsPage() {
       <LegalSection title="3. Price and payment">
         <p>
           The price of a claim pack is shown before you pay and covers one claim (one flight, all passengers on the same
-          booking). Payment is processed by Lemon Squeezy, which acts as merchant of record: it sells the claim pack to
+          booking). Payment is processed by {SITE.paymentProvider}, which acts as merchant of record (reseller): it sells the claim pack to
           you, handles VAT and issues your receipt, and its own buyer terms also apply to the payment.
         </p>
       </LegalSection>

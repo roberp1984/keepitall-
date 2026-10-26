@@ -5,6 +5,7 @@
   "operatorName": "Roberto Pérez",
   "operatorCountry": "Spain",
   "operatorAddress": "C/ Orixe 52, 48015 Bilbao, Spain",
+  "paymentProvider": "Paddle",
   "refundDays": 14,
   "legalUpdated": "2026-10-23"
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { REFUND_DAYS } from "@/lib/site";
+import { REFUND_DAYS, SITE } from "@/lib/site";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useActionState } from "react";
 import { startCheckout, type CheckoutState } from "@/app/result/[id]/actions";
@@ -25,7 +25,7 @@ export function CheckoutButton({ token, price, enabled }: { token: string; price
         </p>
       )}
       <p className="text-center text-xs text-muted-foreground">
-        {enabled ? "Secure checkout by Lemon Squeezy. Guest checkout, no account needed." : "Checkout opens soon."}
+        {enabled ? `Secure checkout by ${SITE.paymentProvider}. Guest checkout, no account needed.` : "Checkout opens soon."}
       </p>
       <p className="text-center text-xs text-muted-foreground">
         {REFUND_DAYS}-day money-back guarantee.{" "}

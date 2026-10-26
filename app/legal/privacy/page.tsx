@@ -6,7 +6,7 @@ import { SITE } from "@/lib/site";
 export const metadata: Metadata = { title: "Privacy policy" };
 
 const PROCESSORS = [
-  ["Lemon Squeezy", "Payments, receipts and VAT (as merchant of record, it is also a controller for payment data)", "USA"],
+  [SITE.paymentProvider, "Payments, receipts and VAT (as merchant of record, it is also a controller for payment data)", "UK"],
   ["Supabase", "Database for claims and orders", "London, UK"],
   ["Vercel", "Website hosting", "London, UK (global network)"],
   ["Resend", "Sending your emails", "EU (Ireland)"],
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           happened, the reason given). No name, email or booking reference.
         </p>
         <p>
-          <strong>When you buy a claim pack:</strong> Lemon Squeezy collects your email and payment details to process the
+          <strong>When you buy a claim pack:</strong> {SITE.paymentProvider} collects your email and payment details to process the
           payment; we receive your email and order number, not your card details. After payment we ask for what the
           letters need: passenger names, booking reference, email and postal address.
         </p>
@@ -77,7 +77,7 @@ export default function PrivacyPage() {
             Claim pack details (names, booking reference, address): deleted {Math.round(retention.packDetailsDays / 365)}{" "}
             years after the pack is created, so you can come back to it while your claim runs.
           </li>
-          <li>Payment records: kept by Lemon Squeezy as tax law requires.</li>
+          <li>Payment records: kept by {SITE.paymentProvider} as tax law requires.</li>
         </ul>
         <p>You can ask us to delete your claim earlier at any time.</p>
       </LegalSection>

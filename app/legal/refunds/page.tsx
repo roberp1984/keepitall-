@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage, LegalSection, SupportLink } from "@/components/legal-page";
 import lifecycle from "@/lib/claims/lifecycle.json";
-import { REFUND_DAYS } from "@/lib/site";
+import { REFUND_DAYS, SITE } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Refund policy" };
 
@@ -14,10 +14,10 @@ export default function RefundsPage() {
       <LegalSection title="How to get a refund">
         <p>
           Email <SupportLink /> within {REFUND_DAYS} days of your purchase, from the email address you paid with, or
-          include your order number (it is in your receipt from Lemon Squeezy).
+          include your order number (it is in your receipt from {SITE.paymentProvider}).
         </p>
         <p>
-          We refund the full price to your original payment method through Lemon Squeezy, our payment provider. Refunds
+          We refund the full price to your original payment method through {SITE.paymentProvider}, our payment provider. Refunds
           are usually processed within 5 working days; your bank may take a few more days to show it.
         </p>
       </LegalSection>
