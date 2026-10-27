@@ -198,7 +198,7 @@ describe("draftClaimLetter", () => {
 describe("buildClaimPack", () => {
   it("includes the disclaimer, letters, replies and generic steps while data is unverified", async () => {
     const facts = ukLongHaulFacts();
-    const pack = await buildClaimPack(facts, { scopeBasis: "departure", airline: getAirline("british-airways") });
+    const pack = await buildClaimPack(facts, { scopeBasis: "departure", airline: { ...getAirline("british-airways")!, verified: false } });
     expect(pack.disclaimer).toBe(DISCLAIMER);
     expect(pack.claimLetter.source).toBe("template");
     expect(pack.escalation.afterDays).toBe(56);
@@ -222,9 +222,8 @@ describe("buildClaimPack", () => {
   });
 
   it("keeps unverified claim links and notes out of the pack", async () => {
-    const airline = getAirline("british-airways")!;
+    const airline = { ...getAirline("british-airways")!, verified: false };
     expect(airline.claimFormUrl).toMatch(/^https:\/\//);
-    expect(airline.verified).toBe(false);
     const pack = await buildClaimPack(ukLongHaulFacts(), { scopeBasis: "departure", airline });
     expect(pack.howToSend.join(" ")).not.toContain(airline.claimFormUrl!);
     expect(pack.howToSend.join(" ")).not.toContain(airline.claimNotes);
