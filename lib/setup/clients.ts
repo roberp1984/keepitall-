@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { emailConfig, paddleEnvironment, siteUrl, supabaseConfig } from "../env";
 import { paddleApi } from "../payments/paddle";
 import { DEFAULT_LETTER_MODEL } from "../letters/anthropic";
+import { SITE } from "../site";
 import type { EnvSnapshot, SetupClients } from "./checks";
 
 const read = (key: string) => process.env[key]?.trim() || null;
@@ -28,7 +29,7 @@ export function envSnapshot(): EnvSnapshot {
     emailFrom: read("EMAIL_FROM"),
     resend: emailConfig() !== null,
     anthropicModel: read("ANTHROPIC_API_KEY") ? (read("ANTHROPIC_MODEL") ?? DEFAULT_LETTER_MODEL) : null,
-    posthogKey: read("NEXT_PUBLIC_POSTHOG_KEY"),
+    analyticsWebsiteId: SITE.analytics.websiteId || null,
     cronSecretLength: read("CRON_SECRET")?.length ?? 0,
   };
 }

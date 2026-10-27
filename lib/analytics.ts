@@ -1,6 +1,6 @@
 "use client";
 
-import posthog from "posthog-js";
+import { redactUrl } from "./analytics-path";
 
 /** Funnel events from CLAUDE.md. Never attach personal data to these. */
 export type AnalyticsEvent =
@@ -14,33 +14,48 @@ export type AnalyticsEvent =
 
 export type AnalyticsProperties = Record<string, string | number | boolean>;
 
-let started = false;
+interface UmamiPayload {
+  url?: string;
+  referrer?: string;
+  name?: string;
+  data?: AnalyticsProperties;
+  [key: string]: unknown;
+}
 
-/**
- * Privacy-first setup: cookieless (no cookies or local storage), no autocapture,
- * no session recording, no person profiles. Requires cookieless mode to be
- * enabled in the PostHog project settings.
- */
-export function initAnalytics(key: string | undefined, host: string | undefined): void {
-  if (started || !key || typeof window === "undefined") return;
-  posthog.init(key, {
-    api_host: host || "https://eu.i.posthog.com",
-    cookieless_mode: "always",
-    persistence: "memory",
-    person_profiles: "never",
-    autocapture: false,
-    capture_pageview: false,
-    capture_pageleave: false,
-    disable_session_recording: true,
-    disable_surveys: true,
-    capture_heatmaps: false,
-    capture_dead_clicks: false,
-    advanced_disable_flags: true,
-  });
-  started = true;
+interface Umami {
+  track(payload: (props: UmamiPayload) => UmamiPayload): void;
+}
+
+declare global {
+  interface Window {
+    umami?: Umami;
+  }
+}
+
+type Send = (umami: Umami) => void;
+const queue: Send[] = [];
+
+/** Umami (cookieless) loads with `defer`; anything sent before it is ready is queued. */
+function send(fn: Send): void {
+  if (typeof window === "undefined") return;
+  if (window.umami) fn(window.umami);
+  else if (queue.length < 50) queue.push(fn);
+}
+
+/** Called once the Umami script has loaded. */
+export function flushAnalytics(): void {
+  const umami = typeof window === "undefined" ? undefined : window.umami;
+  if (!umami) return;
+  for (const fn of queue.splice(0)) fn(umami);
+}
+
+/** Every payload goes through here: no query strings, hashes or pack/result tokens leave the browser. */
+const redact = (props: UmamiPayload): UmamiPayload => ({ ...props, url: redactUrl(props.url), referrer: redactUrl(props.referrer) });
+
+export function trackPageview(): void {
+  send((u) => u.track(redact));
 }
 
 export function track(event: AnalyticsEvent, properties: AnalyticsProperties = {}): void {
-  if (!started) return;
-  posthog.capture(event, properties);
+  send((u) => u.track((props) => ({ ...redact(props), name: event, data: properties })));
 }

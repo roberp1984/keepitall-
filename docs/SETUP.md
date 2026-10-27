@@ -68,11 +68,9 @@ Without this, letters use the static template, which is complete on its own.
 1. Console → API keys → create a key.
 2. Add to Vercel `ANTHROPIC_API_KEY`, and `ANTHROPIC_MODEL` = `claude-sonnet-5-5`.
 
-## 7. PostHog: analytics (optional)
+## 7. Umami: analytics
 
-1. Create a project on **EU Cloud**.
-2. Project settings → enable **cookieless mode**. Without it, PostHog drops the site's events.
-3. Add to Vercel `NEXT_PUBLIC_POSTHOG_KEY` (the project API key, `phc_…`) and `NEXT_PUBLIC_POSTHOG_HOST` = `https://eu.i.posthog.com`.
+Already set up in `lib/site.json` (`analytics`): Umami Cloud website ID and the hostnames to track. To use another Umami account, change the website ID there. Umami is cookieless; the site sends pageviews and the funnel events manually so that `/pack/…` and `/result/…` tokens never reach it.
 
 ## 8. Redeploy
 

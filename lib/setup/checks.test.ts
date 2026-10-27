@@ -8,7 +8,7 @@ const env: EnvSnapshot = {
   emailFrom: "KeepItAll <claims@keepitall.example>",
   resend: true,
   anthropicModel: "claude-sonnet-5-5",
-  posthogKey: "phc_abc",
+  analyticsWebsiteId: "774a7126-36f2-4c88-908d-de459c5ad057",
   cronSecretLength: 64,
 };
 
@@ -44,7 +44,7 @@ describe("runSetupChecks", () => {
       "Paddle · webhook": "ok",
       Resend: "ok",
       Anthropic: "ok",
-      PostHog: "ok",
+      Umami: "ok",
       Cron: "ok",
     });
     expect(r["Paddle · GBP price"]!.detail).toBe("Price “UK261 claim” charges 18.00 EUR, matching the site.");
@@ -99,7 +99,7 @@ describe("runSetupChecks", () => {
   });
 
   it("treats optional services as skipped and required ones as failed when unset", async () => {
-    const bare: EnvSnapshot = { siteUrl: null, supabase: false, paddle: null, emailFrom: null, resend: false, anthropicModel: null, posthogKey: null, cronSecretLength: 0 };
+    const bare: EnvSnapshot = { siteUrl: null, supabase: false, paddle: null, emailFrom: null, resend: false, anthropicModel: null, analyticsWebsiteId: null, cronSecretLength: 0 };
     const c = clients();
     const r = await byService(bare, c, null);
     expect(r["Site URL"]!.status).toBe("fail");
@@ -107,7 +107,7 @@ describe("runSetupChecks", () => {
     expect(r.Paddle!.status).toBe("fail");
     expect(r.Resend!.status).toBe("warn");
     expect(r.Anthropic!.status).toBe("skip");
-    expect(r.PostHog!.status).toBe("skip");
+    expect(r.Umami!.status).toBe("skip");
     expect(r.Cron!.status).toBe("fail");
     expect(c.probeClaims).not.toHaveBeenCalled();
   });
@@ -122,7 +122,7 @@ describe("runSetupChecks", () => {
   it("reports API failures without leaking secrets", async () => {
     const r = await byService(env, clients({ anthropicModel: vi.fn().mockRejectedValue(new Error("404 model not found")) }));
     expect(r.Anthropic).toMatchObject({ status: "fail", detail: "Model claude-sonnet-5-5: 404 model not found" });
-    expect(JSON.stringify(await runSetupChecks(env, clients()))).not.toMatch(/phc_abc/);
+    expect(JSON.stringify(await runSetupChecks(env, clients()))).not.toMatch(/sk_|whsec_/);
   });
 });
 

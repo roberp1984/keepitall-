@@ -1,33 +1,60 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { redactUrl } from "@/lib/analytics-path";
 
-const posthog = vi.hoisted(() => ({ init: vi.fn(), capture: vi.fn() }));
-vi.mock("posthog-js", () => ({ default: posthog }));
-vi.stubGlobal("window", {});
-const { initAnalytics, track } = await import("@/lib/analytics");
+const win: { umami?: { track: ReturnType<typeof vi.fn> } } = {};
+vi.stubGlobal("window", win);
+const { flushAnalytics, track, trackPageview } = await import("@/lib/analytics");
 
-describe("analytics", () => {
-  it("does nothing until initialised, and without a key", () => {
-    track("check_started");
-    initAnalytics(undefined, undefined);
-    track("check_started");
-    expect(posthog.init).not.toHaveBeenCalled();
-    expect(posthog.capture).not.toHaveBeenCalled();
+/** Runs the payload function Umami would receive, with Umami's default props. */
+const sent = (call: unknown[]) =>
+  (call[0] as (p: Record<string, unknown>) => Record<string, unknown>)({
+    website: "w",
+    url: "/pack/SECRET_TOKEN?x=1",
+    referrer: "https://www.tiktok.com/@keepitall/video/1?utm=a",
   });
 
-  it("initialises once with privacy-first settings, then captures", () => {
-    initAnalytics("phc_test", undefined);
-    initAnalytics("phc_test", undefined);
-    expect(posthog.init).toHaveBeenCalledTimes(1);
-    expect(posthog.init.mock.calls[0]![1]).toMatchObject({
-      api_host: "https://eu.i.posthog.com",
-      cookieless_mode: "always",
-      persistence: "memory",
-      person_profiles: "never",
-      autocapture: false,
-      capture_pageview: false,
-      disable_session_recording: true,
+describe("analytics", () => {
+  beforeEach(() => {
+    delete win.umami;
+  });
+
+  it("queues events until Umami loads, then sends them with redacted URLs", () => {
+    track("pack_downloaded", { regime: "UK261" });
+    trackPageview();
+    const umami = { track: vi.fn() };
+    win.umami = umami;
+    flushAnalytics();
+
+    expect(umami.track).toHaveBeenCalledTimes(2);
+    expect(sent(umami.track.mock.calls[0]!)).toEqual({
+      website: "w",
+      url: "/pack/[id]",
+      referrer: "https://www.tiktok.com/@keepitall/video/1",
+      name: "pack_downloaded",
+      data: { regime: "UK261" },
     });
-    track("result_eligible", { regime: "UK261" });
-    expect(posthog.capture).toHaveBeenCalledWith("result_eligible", { regime: "UK261" });
+    expect(sent(umami.track.mock.calls[1]!)).toMatchObject({ url: "/pack/[id]" });
+    expect(sent(umami.track.mock.calls[1]!)).not.toHaveProperty("name");
+  });
+
+  it("sends straight away once Umami is ready", () => {
+    const umami = { track: vi.fn() };
+    win.umami = umami;
+    track("check_started");
+    expect(umami.track).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("redactUrl", () => {
+  it.each([
+    ["/pack/abc123", "/pack/[id]"],
+    ["/pack/abc123/pdf", "/pack/[id]/pdf"],
+    ["/result/eyJhIjoxfQ?ref=x", "/result/[id]"],
+    ["/check#step-3", "/check"],
+    ["https://www.getkeepitall.com/pack/abc", "https://www.getkeepitall.com/pack/[id]"],
+    ["", ""],
+    [undefined, ""],
+  ])("%s → %s", (input, expected) => {
+    expect(redactUrl(input)).toBe(expected);
   });
 });
