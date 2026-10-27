@@ -14,12 +14,7 @@ export interface CheckResult {
 export interface EnvSnapshot {
   siteUrl: string | null;
   supabase: boolean;
-  paddle: {
-    environment: "sandbox" | "production";
-    priceIds: Record<Currency, string>;
-    webhookSecret: boolean;
-    clientToken: string | null;
-  } | null;
+  stripe: { mode: "test" | "live"; priceIds: Record<Currency, string>; webhookSecret: boolean; automaticTax: boolean } | null;
   emailFrom: string | null;
   resend: boolean;
   anthropicModel: string | null;
@@ -30,8 +25,8 @@ export interface EnvSnapshot {
 export interface SetupClients {
   /** `select <columns> from claims limit 1`; returns the error message, if any. */
   probeClaims(columns: string): Promise<string | null>;
-  paddlePrice(priceId: string): Promise<{ name: string; amountCents: number; currency: string; status: string; recurring: boolean }>;
-  paddleWebhooks(): Promise<{ url: string; events: string[]; active: boolean }[]>;
+  stripePrice(priceId: string): Promise<{ name: string; amountCents: number; currency: string; active: boolean; recurring: boolean; taxBehavior: string }>;
+  stripeWebhooks(): Promise<{ url: string; events: string[]; enabled: boolean }[]>;
   resendDomains(): Promise<{ name: string; status: string }[]>;
   anthropicModel(model: string): Promise<void>;
 }
@@ -40,7 +35,7 @@ const MIGRATIONS = {
   init: "supabase/migrations/20261022000000_init.sql",
   lifecycle: "supabase/migrations/20261022010000_lifecycle.sql",
 };
-const WEBHOOK_EVENTS = ["transaction.completed", "adjustment.created", "adjustment.updated"];
+const WEBHOOK_EVENTS = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "charge.refunded"];
 
 const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err)).slice(0, 200);
 
@@ -75,30 +70,30 @@ async function checkSupabase(env: EnvSnapshot, c: SetupClients): Promise<CheckRe
   }
 }
 
-async function checkPaddle(env: EnvSnapshot, c: SetupClients): Promise<CheckResult[]> {
-  const service = "Paddle";
-  if (!env.paddle) {
-    return [{ service, status: "fail", detail: "Set PADDLE_API_KEY, PADDLE_PRICE_ID_EUR and PADDLE_PRICE_ID_GBP (plus PADDLE_CLIENT_TOKEN and PADDLE_WEBHOOK_SECRET)." }];
+async function checkStripe(env: EnvSnapshot, c: SetupClients): Promise<CheckResult[]> {
+  const service = "Stripe";
+  if (!env.stripe) {
+    return [{ service, status: "fail", detail: "Set STRIPE_SECRET_KEY, STRIPE_PRICE_ID_EUR and STRIPE_PRICE_ID_GBP (plus STRIPE_WEBHOOK_SECRET)." }];
   }
-  const { environment, clientToken } = env.paddle;
-  const tokenPrefix = environment === "sandbox" ? "test_" : "live_";
-  const results: CheckResult[] = [];
-  if (!clientToken) results.push({ service, status: "fail", detail: "PADDLE_CLIENT_TOKEN is not set: the checkout can't open." });
-  else if (!clientToken.startsWith(tokenPrefix)) {
-    results.push({ service, status: "fail", detail: `The API key is for ${environment} but the client token isn't (${environment} tokens start with ${tokenPrefix}).` });
-  } else results.push({ service, status: environment === "sandbox" ? "warn" : "ok", detail: `${environment === "sandbox" ? "Sandbox (test payments only)" : "Live"}; client token matches.` });
+  const results: CheckResult[] = [
+    env.stripe.mode === "test"
+      ? { service, status: "warn", detail: "Test mode key: only test payments work." }
+      : { service, status: "ok", detail: `Live mode${env.stripe.automaticTax ? ", Stripe Tax on" : ""}.` },
+  ];
 
   for (const currency of ["EUR", "GBP"] as const) {
     const label = `${service} · ${currency} price`;
     try {
-      const p = await c.paddlePrice(env.paddle.priceIds[currency]);
+      const p = await c.stripePrice(env.stripe.priceIds[currency]);
       const charged = `${(p.amountCents / 100).toFixed(2)} ${p.currency}`;
       const expected = packPrice(currency);
       const advertised = `${expected.amount.toFixed(2)} ${expected.currency}`;
-      if (p.status !== "active") results.push({ service: label, status: "fail", detail: `Price “${p.name}” is ${p.status}; activate it.` });
+      if (!p.active) results.push({ service: label, status: "fail", detail: `Price “${p.name}” is archived; activate it.` });
       else if (p.recurring) results.push({ service: label, status: "fail", detail: `Price “${p.name}” is recurring; it must be one-time.` });
       else if (p.currency !== expected.currency || p.amountCents !== Math.round(expected.amount * 100)) {
         results.push({ service: label, status: "fail", detail: `Price “${p.name}” charges ${charged}; the site shows ${advertised}. Make them match.` });
+      } else if (env.stripe.automaticTax && p.taxBehavior !== "inclusive") {
+        results.push({ service: label, status: "fail", detail: `Price “${p.name}” must be tax-inclusive, or customers pay more than the site shows.` });
       } else results.push({ service: label, status: "ok", detail: `Price “${p.name}” charges ${charged}, matching the site.` });
     } catch (err) {
       results.push({ service: label, status: "fail", detail: `Can't load price: ${errorText(err)}` });
@@ -106,21 +101,21 @@ async function checkPaddle(env: EnvSnapshot, c: SetupClients): Promise<CheckResu
   }
 
   const label = `${service} · webhook`;
-  if (!env.paddle.webhookSecret) {
-    results.push({ service: label, status: "fail", detail: "PADDLE_WEBHOOK_SECRET is not set." });
+  if (!env.stripe.webhookSecret) {
+    results.push({ service: label, status: "fail", detail: "STRIPE_WEBHOOK_SECRET is not set." });
   } else if (!env.siteUrl) {
     results.push({ service: label, status: "skip", detail: "Set NEXT_PUBLIC_SITE_URL to check the webhook URL." });
   } else {
-    const expected = `${env.siteUrl}/api/webhooks/paddle`;
+    const expected = `${env.siteUrl}/api/webhooks/stripe`;
     try {
-      const hook = (await c.paddleWebhooks()).find((w) => w.url === expected);
-      const missing = hook ? WEBHOOK_EVENTS.filter((e) => !hook.events.includes(e)) : WEBHOOK_EVENTS;
-      if (!hook) results.push({ service: label, status: "fail", detail: `No notification destination points to ${expected}.` });
-      else if (!hook.active) results.push({ service: label, status: "fail", detail: `The destination ${expected} is inactive.` });
-      else if (missing.length) results.push({ service: label, status: "fail", detail: `Destination is missing events: ${missing.join(", ")}.` });
-      else results.push({ service: label, status: "ok", detail: `${expected}. The secret key can't be checked remotely: it must match PADDLE_WEBHOOK_SECRET.` });
+      const hook = (await c.stripeWebhooks()).find((w) => w.url === expected);
+      const missing = hook && !hook.events.includes("*") ? WEBHOOK_EVENTS.filter((e) => !hook.events.includes(e)) : hook ? [] : WEBHOOK_EVENTS;
+      if (!hook) results.push({ service: label, status: "fail", detail: `No webhook endpoint points to ${expected}.` });
+      else if (!hook.enabled) results.push({ service: label, status: "fail", detail: `The endpoint ${expected} is disabled.` });
+      else if (missing.length) results.push({ service: label, status: "fail", detail: `Endpoint is missing events: ${missing.join(", ")}.` });
+      else results.push({ service: label, status: "ok", detail: `${expected}. The signing secret can't be checked remotely: it must match STRIPE_WEBHOOK_SECRET.` });
     } catch (err) {
-      results.push({ service: label, status: "fail", detail: `Can't list notification destinations: ${errorText(err)}` });
+      results.push({ service: label, status: "fail", detail: `Can't list webhook endpoints: ${errorText(err)}` });
     }
   }
   return results;
@@ -168,11 +163,11 @@ function checkCron(env: EnvSnapshot): CheckResult {
 
 /** Read-only checks of every integration. */
 export async function runSetupChecks(env: EnvSnapshot, clients: SetupClients, requestOrigin: string | null = null): Promise<CheckResult[]> {
-  const [supabase, paddle, resend, anthropic] = await Promise.all([
+  const [supabase, stripe, resend, anthropic] = await Promise.all([
     checkSupabase(env, clients),
-    checkPaddle(env, clients),
+    checkStripe(env, clients),
     checkResend(env, clients),
     checkAnthropic(env, clients),
   ]);
-  return [checkSite(env, requestOrigin), supabase, ...paddle, resend, anthropic, checkAnalytics(env), checkCron(env)];
+  return [checkSite(env, requestOrigin), supabase, ...stripe, resend, anthropic, checkAnalytics(env), checkCron(env)];
 }

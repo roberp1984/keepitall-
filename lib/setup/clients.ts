@@ -2,8 +2,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
-import { emailConfig, paddleEnvironment, siteUrl, supabaseConfig } from "../env";
-import { paddleApi } from "../payments/paddle";
+import { emailConfig, siteUrl, supabaseConfig } from "../env";
+import { stripeClient } from "../payments/stripe";
 import { DEFAULT_LETTER_MODEL } from "../letters/anthropic";
 import { SITE } from "../site";
 import type { EnvSnapshot, SetupClients } from "./checks";
@@ -11,19 +11,19 @@ import type { EnvSnapshot, SetupClients } from "./checks";
 const read = (key: string) => process.env[key]?.trim() || null;
 
 export function envSnapshot(): EnvSnapshot {
-  const apiKey = read("PADDLE_API_KEY");
-  const eur = read("PADDLE_PRICE_ID_EUR");
-  const gbp = read("PADDLE_PRICE_ID_GBP");
+  const secretKey = read("STRIPE_SECRET_KEY");
+  const eur = read("STRIPE_PRICE_ID_EUR");
+  const gbp = read("STRIPE_PRICE_ID_GBP");
   return {
     siteUrl: read("NEXT_PUBLIC_SITE_URL") ? siteUrl() : null,
     supabase: supabaseConfig() !== null,
-    paddle:
-      apiKey && eur && gbp
+    stripe:
+      secretKey && eur && gbp
         ? {
-            environment: paddleEnvironment(apiKey),
+            mode: secretKey.includes("_live_") ? "live" : "test",
             priceIds: { EUR: eur, GBP: gbp },
-            webhookSecret: Boolean(read("PADDLE_WEBHOOK_SECRET")),
-            clientToken: read("PADDLE_CLIENT_TOKEN"),
+            webhookSecret: Boolean(read("STRIPE_WEBHOOK_SECRET")),
+            automaticTax: read("STRIPE_AUTOMATIC_TAX") === "true",
           }
         : null,
     emailFrom: read("EMAIL_FROM"),
@@ -34,22 +34,8 @@ export function envSnapshot(): EnvSnapshot {
   };
 }
 
-interface PaddlePrice {
-  description: string;
-  status: string;
-  billing_cycle: unknown;
-  unit_price: { amount: string; currency_code: string };
-}
-
-interface PaddleDestination {
-  destination: string;
-  active: boolean;
-  subscribed_events: { name: string }[];
-}
-
 export function realSetupClients(): SetupClients {
-  const apiKey = read("PADDLE_API_KEY") ?? "";
-  const paddle = { apiKey, environment: paddleEnvironment(apiKey) };
+  const stripe = stripeClient({ secretKey: read("STRIPE_SECRET_KEY") ?? "" });
   return {
     async probeClaims(columns) {
       const db = supabaseConfig();
@@ -58,19 +44,21 @@ export function realSetupClients(): SetupClients {
       const { error } = await client.from("claims").select(columns).limit(1);
       return error ? error.message : null;
     },
-    async paddlePrice(priceId) {
-      const p = await paddleApi<PaddlePrice>(paddle, `/prices/${encodeURIComponent(priceId)}`);
+    async stripePrice(priceId) {
+      const p = await stripe.prices.retrieve(priceId, { expand: ["product"] });
+      const product = typeof p.product === "object" && "name" in p.product ? p.product.name : "";
       return {
-        name: p.description,
-        amountCents: Number(p.unit_price.amount),
-        currency: p.unit_price.currency_code,
-        status: p.status,
-        recurring: p.billing_cycle != null,
+        name: p.nickname ?? product ?? p.id,
+        amountCents: p.unit_amount ?? 0,
+        currency: p.currency.toUpperCase(),
+        active: p.active,
+        recurring: p.type === "recurring",
+        taxBehavior: p.tax_behavior ?? "unspecified",
       };
     },
-    async paddleWebhooks() {
-      const list = await paddleApi<PaddleDestination[]>(paddle, "/notification-settings");
-      return list.map((d) => ({ url: d.destination, events: d.subscribed_events.map((e) => e.name), active: d.active }));
+    async stripeWebhooks() {
+      const list = await stripe.webhookEndpoints.list({ limit: 100 });
+      return list.data.map((w) => ({ url: w.url, events: w.enabled_events, enabled: w.status === "enabled" }));
     },
     async resendDomains() {
       const { data, error } = await new Resend(read("RESEND_API_KEY")!).domains.list();

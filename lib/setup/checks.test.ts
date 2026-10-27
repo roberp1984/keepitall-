@@ -4,7 +4,7 @@ import { emailDomain, runSetupChecks, type EnvSnapshot, type SetupClients } from
 const env: EnvSnapshot = {
   siteUrl: "https://keepitall.example",
   supabase: true,
-  paddle: { environment: "production", priceIds: { EUR: "pri_eur", GBP: "pri_gbp" }, webhookSecret: true, clientToken: "live_abc" },
+  stripe: { mode: "live", priceIds: { EUR: "price_eur", GBP: "price_gbp" }, webhookSecret: true, automaticTax: false },
   emailFrom: "KeepItAll <claims@keepitall.example>",
   resend: true,
   anthropicModel: "claude-sonnet-5-5",
@@ -15,13 +15,17 @@ const env: EnvSnapshot = {
 function clients(overrides: Partial<SetupClients> = {}): SetupClients {
   return {
     probeClaims: vi.fn().mockResolvedValue(null),
-    paddlePrice: vi.fn(async (id: string) =>
-      id === "pri_eur"
-        ? { name: "EU261 claim", amountCents: 1900, currency: "EUR", status: "active", recurring: false }
-        : { name: "UK261 claim", amountCents: 1800, currency: "EUR", status: "active", recurring: false },
+    stripePrice: vi.fn(async (id: string) =>
+      id === "price_eur"
+        ? { name: "EU261 claim", amountCents: 1900, currency: "EUR", active: true, recurring: false, taxBehavior: "inclusive" }
+        : { name: "UK261 claim", amountCents: 1800, currency: "EUR", active: true, recurring: false, taxBehavior: "inclusive" },
     ),
-    paddleWebhooks: vi.fn().mockResolvedValue([
-      { url: "https://keepitall.example/api/webhooks/paddle", events: ["transaction.completed", "adjustment.created", "adjustment.updated"], active: true },
+    stripeWebhooks: vi.fn().mockResolvedValue([
+      {
+        url: "https://keepitall.example/api/webhooks/stripe",
+        events: ["checkout.session.completed", "checkout.session.async_payment_succeeded", "charge.refunded"],
+        enabled: true,
+      },
     ]),
     resendDomains: vi.fn().mockResolvedValue([{ name: "keepitall.example", status: "verified" }]),
     anthropicModel: vi.fn().mockResolvedValue(undefined),
@@ -38,16 +42,16 @@ describe("runSetupChecks", () => {
     expect(Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.status]))).toEqual({
       "Site URL": "ok",
       Supabase: "ok",
-      Paddle: "ok",
-      "Paddle · EUR price": "ok",
-      "Paddle · GBP price": "ok",
-      "Paddle · webhook": "ok",
+      Stripe: "ok",
+      "Stripe · EUR price": "ok",
+      "Stripe · GBP price": "ok",
+      "Stripe · webhook": "ok",
       Resend: "ok",
       Anthropic: "ok",
       Umami: "ok",
       Cron: "ok",
     });
-    expect(r["Paddle · GBP price"]!.detail).toBe("Price “UK261 claim” charges 18.00 EUR, matching the site.");
+    expect(r["Stripe · GBP price"]!.detail).toBe("Price “UK261 claim” charges 18.00 EUR, matching the site.");
   });
 
   it("points to the right migration when tables or columns are missing", async () => {
@@ -60,35 +64,44 @@ describe("runSetupChecks", () => {
     expect(missingColumns.Supabase!.detail).toContain("20261022010000_lifecycle.sql");
   });
 
-  it("flags wrong prices, inactive or recurring prices and webhook problems", async () => {
+  it("flags wrong, archived, recurring or tax-exclusive prices and webhook problems", async () => {
     const r = await byService(
       env,
       clients({
-        paddlePrice: vi.fn(async (id: string) =>
-          id === "pri_eur"
-            ? { name: "EU261 claim", amountCents: 2500, currency: "EUR", status: "active", recurring: false }
-            : { name: "UK261 claim", amountCents: 1800, currency: "EUR", status: "archived", recurring: false },
+        stripePrice: vi.fn(async (id: string) =>
+          id === "price_eur"
+            ? { name: "EU261 claim", amountCents: 2500, currency: "EUR", active: true, recurring: false, taxBehavior: "inclusive" }
+            : { name: "UK261 claim", amountCents: 1800, currency: "EUR", active: false, recurring: false, taxBehavior: "inclusive" },
         ),
-        paddleWebhooks: vi.fn().mockResolvedValue([{ url: "https://keepitall.example/api/webhooks/paddle", events: ["transaction.completed"], active: true }]),
+        stripeWebhooks: vi.fn().mockResolvedValue([{ url: "https://keepitall.example/api/webhooks/stripe", events: ["checkout.session.completed"], enabled: true }]),
       }),
     );
-    expect(r["Paddle · EUR price"]).toMatchObject({ status: "fail" });
-    expect(r["Paddle · EUR price"]!.detail).toContain("the site shows 19.00 EUR");
-    expect(r["Paddle · GBP price"]).toMatchObject({ status: "fail", detail: "Price “UK261 claim” is archived; activate it." });
-    expect(r["Paddle · webhook"]).toMatchObject({ status: "fail", detail: "Destination is missing events: adjustment.created, adjustment.updated." });
+    expect(r["Stripe · EUR price"]).toMatchObject({ status: "fail" });
+    expect(r["Stripe · EUR price"]!.detail).toContain("the site shows 19.00 EUR");
+    expect(r["Stripe · GBP price"]).toMatchObject({ status: "fail", detail: "Price “UK261 claim” is archived; activate it." });
+    expect(r["Stripe · webhook"]).toMatchObject({
+      status: "fail",
+      detail: "Endpoint is missing events: checkout.session.async_payment_succeeded, charge.refunded.",
+    });
 
-    const recurring = await byService(env, clients({ paddlePrice: vi.fn().mockResolvedValue({ name: "Sub", amountCents: 1900, currency: "EUR", status: "active", recurring: true }) }));
-    expect(recurring["Paddle · EUR price"]!.detail).toContain("must be one-time");
+    const recurring = await byService(
+      env,
+      clients({ stripePrice: vi.fn().mockResolvedValue({ name: "Sub", amountCents: 1900, currency: "EUR", active: true, recurring: true, taxBehavior: "inclusive" }) }),
+    );
+    expect(recurring["Stripe · EUR price"]!.detail).toContain("must be one-time");
 
-    const none = await byService(env, clients({ paddleWebhooks: vi.fn().mockResolvedValue([]) }));
-    expect(none["Paddle · webhook"]!.detail).toBe("No notification destination points to https://keepitall.example/api/webhooks/paddle.");
+    const exclusive = clients({ stripePrice: vi.fn().mockResolvedValue({ name: "P", amountCents: 1900, currency: "EUR", active: true, recurring: false, taxBehavior: "exclusive" }) });
+    expect((await byService({ ...env, stripe: { ...env.stripe!, automaticTax: true } }, exclusive))["Stripe · EUR price"]!.detail).toContain("tax-inclusive");
+
+    const allEvents = await byService(env, clients({ stripeWebhooks: vi.fn().mockResolvedValue([{ url: "https://keepitall.example/api/webhooks/stripe", events: ["*"], enabled: true }]) }));
+    expect(allEvents["Stripe · webhook"]!.status).toBe("ok");
+
+    const none = await byService(env, clients({ stripeWebhooks: vi.fn().mockResolvedValue([]) }));
+    expect(none["Stripe · webhook"]!.detail).toBe("No webhook endpoint points to https://keepitall.example/api/webhooks/stripe.");
   });
 
-  it("checks the client token matches the API key's environment", async () => {
-    const sandbox = { ...env.paddle!, environment: "sandbox" as const };
-    expect((await byService({ ...env, paddle: sandbox }, clients())).Paddle).toMatchObject({ status: "fail" });
-    expect((await byService({ ...env, paddle: { ...sandbox, clientToken: "test_abc" } }, clients())).Paddle).toMatchObject({ status: "warn" });
-    expect((await byService({ ...env, paddle: { ...env.paddle!, clientToken: null } }, clients())).Paddle).toMatchObject({ status: "fail" });
+  it("warns that a test-mode key only takes test payments", async () => {
+    expect((await byService({ ...env, stripe: { ...env.stripe!, mode: "test" } }, clients())).Stripe).toMatchObject({ status: "warn" });
   });
 
   it("checks the Resend domain", async () => {
@@ -99,12 +112,12 @@ describe("runSetupChecks", () => {
   });
 
   it("treats optional services as skipped and required ones as failed when unset", async () => {
-    const bare: EnvSnapshot = { siteUrl: null, supabase: false, paddle: null, emailFrom: null, resend: false, anthropicModel: null, analyticsWebsiteId: null, cronSecretLength: 0 };
+    const bare: EnvSnapshot = { siteUrl: null, supabase: false, stripe: null, emailFrom: null, resend: false, anthropicModel: null, analyticsWebsiteId: null, cronSecretLength: 0 };
     const c = clients();
     const r = await byService(bare, c, null);
     expect(r["Site URL"]!.status).toBe("fail");
     expect(r.Supabase!.status).toBe("fail");
-    expect(r.Paddle!.status).toBe("fail");
+    expect(r.Stripe!.status).toBe("fail");
     expect(r.Resend!.status).toBe("warn");
     expect(r.Anthropic!.status).toBe("skip");
     expect(r.Umami!.status).toBe("skip");

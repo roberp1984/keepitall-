@@ -18,32 +18,21 @@ export function supabaseConfig(): SupabaseConfig | null {
   return url && serviceRoleKey ? { url, serviceRoleKey } : null;
 }
 
-export type PaddleEnvironment = "sandbox" | "production";
-
 export interface PaymentsConfig {
-  apiKey: string;
-  environment: PaddleEnvironment;
+  secretKey: string;
   priceIds: Record<Currency, string>;
   webhookSecret: string;
-  /** Client-side token for Paddle.js (not secret): test_… in sandbox, live_… in production. */
-  clientToken: string;
-}
-
-/** Sandbox keys contain `_sdbx_`; PADDLE_ENVIRONMENT overrides. */
-export function paddleEnvironment(apiKey: string | undefined): PaddleEnvironment {
-  const explicit = read("PADDLE_ENVIRONMENT");
-  if (explicit === "sandbox" || explicit === "production") return explicit;
-  return apiKey?.includes("_sdbx_") ? "sandbox" : "production";
+  /** Let Stripe Tax calculate VAT at checkout (needs tax registrations set up in Stripe). */
+  automaticTax: boolean;
 }
 
 export function paymentsConfig(): PaymentsConfig | null {
-  const apiKey = read("PADDLE_API_KEY");
-  const eur = read("PADDLE_PRICE_ID_EUR");
-  const gbp = read("PADDLE_PRICE_ID_GBP");
-  const webhookSecret = read("PADDLE_WEBHOOK_SECRET");
-  const clientToken = read("PADDLE_CLIENT_TOKEN");
-  return apiKey && eur && gbp && webhookSecret && clientToken
-    ? { apiKey, environment: paddleEnvironment(apiKey), priceIds: { EUR: eur, GBP: gbp }, webhookSecret, clientToken }
+  const secretKey = read("STRIPE_SECRET_KEY");
+  const eur = read("STRIPE_PRICE_ID_EUR");
+  const gbp = read("STRIPE_PRICE_ID_GBP");
+  const webhookSecret = read("STRIPE_WEBHOOK_SECRET");
+  return secretKey && eur && gbp && webhookSecret
+    ? { secretKey, priceIds: { EUR: eur, GBP: gbp }, webhookSecret, automaticTax: read("STRIPE_AUTOMATIC_TAX") === "true" }
     : null;
 }
 

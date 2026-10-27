@@ -76,7 +76,7 @@ export default function PricingPage() {
 
       <section className="flex flex-col gap-2 text-sm text-muted-foreground">
         <p>
-          Payments are processed by {SITE.paymentProvider}, our merchant of record, which also handles VAT.
+          Prices include any VAT due. Card payments are processed securely by {SITE.paymentProvider}.
           You get your claim pack instantly after paying.
         </p>
         <p>
