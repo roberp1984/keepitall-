@@ -10,7 +10,7 @@ const PROCESSORS = [
   ["Supabase", "Database for claims and orders", "London, UK"],
   ["Vercel", "Website hosting", "London, UK (global network)"],
   ["Resend", "Sending your emails", "EU (Ireland)"],
-  ["Umami", "Cookieless, anonymous usage analytics (no cookies, no personal data, no cross-site tracking)", "Umami Cloud (EU/USA)"],
+  ["Umami", "Cookieless, anonymous usage analytics (no cookies, no personal data, no cross-site tracking)", "EU (Umami Cloud)"],
   ["Anthropic", "Drafting letter text. It never receives names, emails, addresses or booking references", "USA"],
 ] as const;
 
