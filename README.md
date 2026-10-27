@@ -6,7 +6,7 @@ Product rules and scope live in [`CLAUDE.md`](./CLAUDE.md). The most important o
 
 ## Stack
 
-Next.js 16 (App Router, Cache Components) · TypeScript (strict) · Tailwind 4 · shadcn/ui · Supabase · Stripe · Anthropic API · Resend · `@react-pdf/renderer` · PostHog · Vitest · Vercel
+Next.js 16 (App Router, Cache Components) · TypeScript (strict) · Tailwind 4 · shadcn/ui · Supabase · Stripe · Anthropic API · Resend · `@react-pdf/renderer` · Umami · Vitest · Vercel
 
 ## Getting started
 
@@ -40,7 +40,7 @@ CI (`.github/workflows/ci.yml`) runs all four checks on every push.
 | Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID_EUR`, `STRIPE_PRICE_ID_GBP`, `STRIPE_WEBHOOK_SECRET` (optional `STRIPE_AUTOMATIC_TAX`) | One product with two one-time, tax-inclusive EUR prices: EU261 claims 19.00, UK261 claims 18.00 (must match `lib/pricing.json`). Webhook → `<site>/api/webhooks/stripe`, events `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `charge.refunded`. You are the seller: VAT (EU OSS, UK VAT) is your responsibility. |
 | Resend | `RESEND_API_KEY`, `EMAIL_FROM` | Verify your sending domain. Without it, nothing is emailed but the pack page still works. |
 | Anthropic | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` (default `claude-sonnet-5-5`) | Optional. Without it, the claim letter uses the static template. |
-| PostHog | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | Enable **cookieless mode** in the project settings, or events are dropped. |
+| Umami | none (`analytics` in `lib/site.json`) | Cookieless analytics. Only the production hostnames are tracked; pack and result tokens are stripped from URLs. |
 | Cron | `CRON_SECRET` | Vercel Cron calls `/api/cron/daily` (see `vercel.json`) with this as a bearer token. |
 
 Check a deployment with `CRON_SECRET=… npm run setup:check -- https://your-site` (read-only checks of every integration), then do one test-mode purchase end to end.

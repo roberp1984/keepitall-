@@ -18,7 +18,7 @@ export interface EnvSnapshot {
   emailFrom: string | null;
   resend: boolean;
   anthropicModel: string | null;
-  posthogKey: string | null;
+  analyticsWebsiteId: string | null;
   cronSecretLength: number;
 }
 
@@ -147,11 +147,11 @@ async function checkAnthropic(env: EnvSnapshot, c: SetupClients): Promise<CheckR
   }
 }
 
-function checkPosthog(env: EnvSnapshot): CheckResult {
-  const service = "PostHog";
-  if (!env.posthogKey) return { service, status: "skip", detail: "NEXT_PUBLIC_POSTHOG_KEY not set: no analytics." };
-  if (!env.posthogKey.startsWith("phc_")) return { service, status: "warn", detail: "Key doesn't look like a project API key (phc_…)." };
-  return { service, status: "ok", detail: "Key set. Make sure cookieless mode is enabled in the project settings." };
+function checkAnalytics(env: EnvSnapshot): CheckResult {
+  const service = "Umami";
+  if (!env.analyticsWebsiteId) return { service, status: "skip", detail: "No Umami website ID in lib/site.json: no analytics." };
+  if (!/^[0-9a-f-]{36}$/i.test(env.analyticsWebsiteId)) return { service, status: "warn", detail: "The website ID doesn't look like an Umami ID (a UUID)." };
+  return { service, status: "ok", detail: "Website ID set. Pageviews and funnel events are cookieless, with pack and result tokens removed." };
 }
 
 function checkCron(env: EnvSnapshot): CheckResult {
@@ -169,5 +169,5 @@ export async function runSetupChecks(env: EnvSnapshot, clients: SetupClients, re
     checkResend(env, clients),
     checkAnthropic(env, clients),
   ]);
-  return [checkSite(env, requestOrigin), supabase, ...stripe, resend, anthropic, checkPosthog(env), checkCron(env)];
+  return [checkSite(env, requestOrigin), supabase, ...stripe, resend, anthropic, checkAnalytics(env), checkCron(env)];
 }

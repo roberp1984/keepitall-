@@ -167,6 +167,6 @@ describe("analytics", () => {
     await handleOrderPaid(deps, paid(claim.id));
     await handleOrderPaid(deps, paid(claim.id));
     expect(track).toHaveBeenCalledTimes(1);
-    expect(track).toHaveBeenCalledWith("payment_succeeded", claim.id, { regime: "UK261", currency: "GBP", test_mode: true });
+    expect(track).toHaveBeenCalledWith("payment_succeeded", { regime: "UK261", currency: "GBP", test_mode: true });
   });
 });

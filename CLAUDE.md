@@ -29,7 +29,7 @@ compensation **themselves** under EU261 and UK261, instead of paying claim compa
 - Anthropic API for letter drafting (model: `claude-sonnet-5-5`)
 - Resend for transactional email
 - `@react-pdf/renderer` for PDF generation
-- PostHog for funnel analytics
+- Umami (cookieless) for funnel analytics
 - Deploy on Vercel
 
 ## Core flow (MVP)
@@ -94,7 +94,7 @@ Start with the 30 airlines with the most delays in Europe; human verifies URLs.
 - `/airlines/[slug]` — SEO page per airline ("Ryanair delay compensation: how to claim yourself")
 - `/legal/terms`, `/legal/privacy`, `/legal/disclaimer`
 
-## Analytics events (PostHog)
+## Analytics events (Umami)
 `check_started`, `check_completed`, `result_eligible`, `result_not_eligible`,
 `checkout_started`, `payment_succeeded`, `pack_downloaded`.
 

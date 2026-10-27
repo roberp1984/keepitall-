@@ -7,5 +7,15 @@
   "operatorAddress": "C/ Orixe 52, 48015 Bilbao, Spain",
   "paymentProvider": "Stripe",
   "refundDays": 14,
-  "legalUpdated": "2026-10-23"
+  "legalUpdated": "2026-10-23",
+  "analytics": {
+    "$comment": "Umami Cloud (cookieless). Not secret. Only these hostnames are tracked, so local and preview builds send nothing.",
+    "scriptUrl": "https://cloud.umami.is/script.js",
+    "sendUrl": "https://cloud.umami.is/api/send",
+    "websiteId": "774a7126-36f2-4c88-908d-de459c5ad057",
+    "domains": [
+      "www.getkeepitall.com",
+      "getkeepitall.com"
+    ]
+  }
 }

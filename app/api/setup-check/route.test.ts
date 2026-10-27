@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/setup/clients", () => ({
-  envSnapshot: () => ({ siteUrl: null, supabase: false, lemon: null, emailFrom: null, resend: false, anthropicModel: null, posthogKey: null, cronSecretLength: 40 }),
+  envSnapshot: () => ({ siteUrl: null, supabase: false, stripe: null, emailFrom: null, resend: false, anthropicModel: null, analyticsWebsiteId: null, cronSecretLength: 40 }),
   realSetupClients: () => ({}),
 }));
 const { GET } = await import("./route");
