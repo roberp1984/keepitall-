@@ -42,8 +42,11 @@ export default function TermsPage() {
       <LegalSection title="3. Price and payment">
         <p>
           The price of a claim pack is shown before you pay and covers one claim (one flight, all passengers on the same
-          booking). Prices include any VAT due. {SITE.operatorName} is the seller; card payments are processed securely by our
-          payment provider, {SITE.paymentProvider}, and we never see your full card details.
+          booking). Prices include any VAT due.{" "}
+          {SITE.merchantOfRecord
+            ? `${SITE.paymentProvider} acts as merchant of record (reseller): it sells the claim pack to you, handles VAT and issues your receipt, and its own buyer terms also apply to the payment.`
+            : `${SITE.operatorName} is the seller; card payments are processed securely by our payment provider, ${SITE.paymentProvider}.`}{" "}
+          We never see your full card details.
         </p>
       </LegalSection>
 

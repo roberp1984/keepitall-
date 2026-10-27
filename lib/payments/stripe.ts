@@ -29,11 +29,15 @@ export async function createCheckoutUrl(
     line_items: [{ price: config.priceIds[req.currency], quantity: 1 }],
     client_reference_id: req.claimId,
     metadata: { claim_id: req.claimId },
-    payment_intent_data: { metadata: { claim_id: req.claimId } },
     success_url: req.successUrl,
     cancel_url: req.cancelUrl,
     locale: "en",
-    ...(config.automaticTax ? { automatic_tax: { enabled: true }, billing_address_collection: "required" as const } : {}),
+    // Managed Payments sets tax and billing-address collection itself; they can't be passed alongside it.
+    ...(config.managedPayments
+      ? { managed_payments: { enabled: true } }
+      : config.automaticTax
+        ? { automatic_tax: { enabled: true }, billing_address_collection: "required" as const }
+        : {}),
   });
   if (!session.url) throw new Error("Stripe returned a session without a URL");
   return session.url;

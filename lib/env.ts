@@ -22,7 +22,9 @@ export interface PaymentsConfig {
   secretKey: string;
   priceIds: Record<Currency, string>;
   webhookSecret: string;
-  /** Let Stripe Tax calculate VAT at checkout (needs tax registrations set up in Stripe). */
+  /** Stripe Managed Payments: Stripe is merchant of record and handles VAT (on unless STRIPE_MANAGED_PAYMENTS=false). */
+  managedPayments: boolean;
+  /** Without Managed Payments: let Stripe Tax calculate VAT at checkout (needs your own tax registrations). */
   automaticTax: boolean;
 }
 
@@ -32,7 +34,13 @@ export function paymentsConfig(): PaymentsConfig | null {
   const gbp = read("STRIPE_PRICE_ID_GBP");
   const webhookSecret = read("STRIPE_WEBHOOK_SECRET");
   return secretKey && eur && gbp && webhookSecret
-    ? { secretKey, priceIds: { EUR: eur, GBP: gbp }, webhookSecret, automaticTax: read("STRIPE_AUTOMATIC_TAX") === "true" }
+    ? {
+        secretKey,
+        priceIds: { EUR: eur, GBP: gbp },
+        webhookSecret,
+        managedPayments: read("STRIPE_MANAGED_PAYMENTS") !== "false",
+        automaticTax: read("STRIPE_AUTOMATIC_TAX") === "true",
+      }
     : null;
 }
 

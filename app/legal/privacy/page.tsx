@@ -6,7 +6,13 @@ import { SITE } from "@/lib/site";
 export const metadata: Metadata = { title: "Privacy policy" };
 
 const PROCESSORS = [
-  [SITE.paymentProvider, "Card payments and fraud prevention (it is also an independent controller for payment data)", "EU (Ireland), with transfers to the USA"],
+  [
+    SITE.paymentProvider,
+    SITE.merchantOfRecord
+      ? "Payments, receipts and VAT (as merchant of record, it is also a controller for payment data)"
+      : "Card payments and fraud prevention (it is also an independent controller for payment data)",
+    "EU (Ireland), with transfers to the USA",
+  ],
   ["Supabase", "Database for claims and orders", "London, UK"],
   ["Vercel", "Website hosting", "London, UK (global network)"],
   ["Resend", "Sending your emails", "EU (Ireland)"],

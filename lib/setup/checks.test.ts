@@ -4,7 +4,7 @@ import { emailDomain, runSetupChecks, type EnvSnapshot, type SetupClients } from
 const env: EnvSnapshot = {
   siteUrl: "https://keepitall.example",
   supabase: true,
-  stripe: { mode: "live", priceIds: { EUR: "price_eur", GBP: "price_gbp" }, webhookSecret: true, automaticTax: false },
+  stripe: { mode: "live", priceIds: { EUR: "price_eur", GBP: "price_gbp" }, webhookSecret: true, managedPayments: false, automaticTax: false },
   emailFrom: "KeepItAll <claims@keepitall.example>",
   resend: true,
   anthropicModel: "claude-sonnet-5-5",

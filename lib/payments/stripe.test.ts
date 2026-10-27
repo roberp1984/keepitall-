@@ -7,6 +7,7 @@ const config: PaymentsConfig = {
   secretKey: "sk_test_x",
   priceIds: { EUR: "price_eur", GBP: "price_gbp" },
   webhookSecret: "whsec_x",
+  managedPayments: false,
   automaticTax: false,
 };
 
@@ -52,11 +53,19 @@ describe("createCheckoutUrl", () => {
       line_items: [{ price: "price_gbp", quantity: 1 }],
       client_reference_id: "c1",
       metadata: { claim_id: "c1" },
-      payment_intent_data: { metadata: { claim_id: "c1" } },
       success_url: req.successUrl,
       cancel_url: req.cancelUrl,
     });
     expect(params.automatic_tax).toBeUndefined();
+  });
+
+  it("enables Managed Payments without passing tax settings", async () => {
+    const create = vi.fn().mockResolvedValue({ url: "https://checkout.stripe.com/x" });
+    await createCheckoutUrl({ ...config, managedPayments: true, automaticTax: true }, req, { create } as never);
+    const params = create.mock.calls[0]![0];
+    expect(params.managed_payments).toEqual({ enabled: true });
+    expect(params.automatic_tax).toBeUndefined();
+    expect(params.billing_address_collection).toBeUndefined();
   });
 
   it("turns on Stripe Tax when configured", async () => {

@@ -34,7 +34,9 @@ Keep a copy in your password manager: you'll need it for step 9.
 
 ## 4. Stripe: payments
 
-With Stripe **you are the seller**: Stripe processes the card payment, but VAT is your responsibility. Before taking live payments, register as self-employed and, with your tax adviser, for EU VAT OSS (EU customers) and UK VAT (UK customers). Stripe Tax can calculate it at checkout (`STRIPE_AUTOMATIC_TAX=true`).
+The site uses **Stripe Managed Payments** by default: Stripe is the merchant of record, so it sells to the customer and handles VAT, fraud and disputes (about 3.5% on top of the normal Stripe fee). Choose it when setting up the account ("Let us handle it" / "Simplify digital sales"); Stripe may review the business first.
+
+Without it (`STRIPE_MANAGED_PAYMENTS=false`, and `merchantOfRecord: false` in `lib/site.json` so the legal pages say you are the seller), VAT is your responsibility: register for EU VAT OSS and UK VAT with your tax adviser. Stripe Tax can calculate it at checkout (`STRIPE_AUTOMATIC_TAX=true`).
 
 Do everything below in **test mode** first (toggle at the top of the dashboard), then repeat in live mode (step 11).
 

@@ -23,6 +23,7 @@ export function envSnapshot(): EnvSnapshot {
             mode: secretKey.includes("_live_") ? "live" : "test",
             priceIds: { EUR: eur, GBP: gbp },
             webhookSecret: Boolean(read("STRIPE_WEBHOOK_SECRET")),
+            managedPayments: read("STRIPE_MANAGED_PAYMENTS") !== "false",
             automaticTax: read("STRIPE_AUTOMATIC_TAX") === "true",
           }
         : null,

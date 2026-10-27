@@ -14,7 +14,7 @@ export interface CheckResult {
 export interface EnvSnapshot {
   siteUrl: string | null;
   supabase: boolean;
-  stripe: { mode: "test" | "live"; priceIds: Record<Currency, string>; webhookSecret: boolean; automaticTax: boolean } | null;
+  stripe: { mode: "test" | "live"; priceIds: Record<Currency, string>; webhookSecret: boolean; managedPayments: boolean; automaticTax: boolean } | null;
   emailFrom: string | null;
   resend: boolean;
   anthropicModel: string | null;
@@ -78,7 +78,7 @@ async function checkStripe(env: EnvSnapshot, c: SetupClients): Promise<CheckResu
   const results: CheckResult[] = [
     env.stripe.mode === "test"
       ? { service, status: "warn", detail: "Test mode key: only test payments work." }
-      : { service, status: "ok", detail: `Live mode${env.stripe.automaticTax ? ", Stripe Tax on" : ""}.` },
+      : { service, status: "ok", detail: `Live mode${env.stripe.managedPayments ? ", Managed Payments (Stripe is merchant of record)" : env.stripe.automaticTax ? ", Stripe Tax on" : ""}.` },
   ];
 
   for (const currency of ["EUR", "GBP"] as const) {
@@ -92,7 +92,7 @@ async function checkStripe(env: EnvSnapshot, c: SetupClients): Promise<CheckResu
       else if (p.recurring) results.push({ service: label, status: "fail", detail: `Price “${p.name}” is recurring; it must be one-time.` });
       else if (p.currency !== expected.currency || p.amountCents !== Math.round(expected.amount * 100)) {
         results.push({ service: label, status: "fail", detail: `Price “${p.name}” charges ${charged}; the site shows ${advertised}. Make them match.` });
-      } else if (env.stripe.automaticTax && p.taxBehavior !== "inclusive") {
+      } else if ((env.stripe.managedPayments || env.stripe.automaticTax) && p.taxBehavior !== "inclusive") {
         results.push({ service: label, status: "fail", detail: `Price “${p.name}” must be tax-inclusive, or customers pay more than the site shows.` });
       } else results.push({ service: label, status: "ok", detail: `Price “${p.name}” charges ${charged}, matching the site.` });
     } catch (err) {

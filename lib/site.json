@@ -1,11 +1,12 @@
 {
-  "$comment": "Business details shown on the site and in emails. operatorName/operatorAddress: fill in your legal name (or company) and address before launch; EU/UK consumer law requires traders to identify themselves.",
+  "$comment": "Business details shown on the site and in emails. operatorName/operatorAddress: fill in your legal name (or company) and address before launch; EU/UK consumer law requires traders to identify themselves. merchantOfRecord: true when the payment provider sells to the customer and handles VAT (Stripe Managed Payments); false when the operator is the seller.",
   "name": "KeepItAll",
   "supportEmail": "support@getkeepitall.com",
   "operatorName": "Roberto Pérez",
   "operatorCountry": "Spain",
   "operatorAddress": "C/ Orixe 52, 48015 Bilbao, Spain",
   "paymentProvider": "Stripe",
+  "merchantOfRecord": true,
   "refundDays": 14,
   "legalUpdated": "2026-10-23",
   "analytics": {

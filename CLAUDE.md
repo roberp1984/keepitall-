@@ -25,7 +25,7 @@ compensation **themselves** under EU261 and UK261, instead of paying claim compa
 ## Stack
 - Next.js (App Router) + TypeScript (strict) + Tailwind + shadcn/ui
 - Supabase (Postgres) for claims and orders
-- Stripe for payments (Stripe Checkout; we are the seller and handle VAT via OSS/UK VAT. Lemon Squeezy and Paddle rejected the business)
+- Stripe for payments (Stripe Checkout with Managed Payments: Stripe is merchant of record → handles VAT. Lemon Squeezy and Paddle rejected the business)
 - Anthropic API for letter drafting (model: `claude-sonnet-5-5`)
 - Resend for transactional email
 - `@react-pdf/renderer` for PDF generation
