@@ -21,6 +21,8 @@ export interface DeadlineEntry {
   startsFrom: "flight_date" | "end_of_year";
   verified: boolean;
   source: string | null;
+  /** Strength of the sources found (research aid only; display depends on `verified`). */
+  confidence?: "high" | "medium" | "low";
   notes: string;
 }
 

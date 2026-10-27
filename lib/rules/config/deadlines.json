@@ -1,23 +1,159 @@
 {
-  "$comment": "Limitation periods for bringing a compensation claim, by jurisdiction. EVERY entry must be checked by a human (with source) before launch. Entries with verified=false are never shown to users. startsFrom: flight_date = the period runs from the flight date; end_of_year = from 31 December of the year of the flight.",
+  "$comment": "Limitation periods for bringing a compensation claim, by jurisdiction. EVERY entry must be checked by a human (with source) before launch. Entries with verified=false are never shown to users. startsFrom: flight_date = the period runs from the flight date; end_of_year = from 31 December of the year of the flight. confidence: strength of the sources found in October 2026 research (high = official body or supreme court; medium = statute by general rule, secondary sources; low = unsettled or not found). Research is not legal advice: a lawyer should confirm before setting verified=true.",
   "warnWithinDays": 180,
   "jurisdictions": {
-    "GB-ENG": { "name": "England and Wales", "years": 6, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "Limitation Act 1980." },
-    "GB-SCT": { "name": "Scotland", "years": 5, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "Prescription and Limitation (Scotland) Act 1973." },
-    "GB-NIR": { "name": "Northern Ireland", "years": 6, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "IE": { "name": "Ireland", "years": 6, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "DE": { "name": "Germany", "years": 3, "startsFrom": "end_of_year", "verified": false, "source": null, "notes": "Regular limitation period, BGB §§195, 199." },
-    "FR": { "name": "France", "years": 5, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "ES": { "name": "Spain", "years": 5, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "IT": { "name": "Italy", "years": 10, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "Disputed; some sources state a shorter period." },
-    "PT": { "name": "Portugal", "years": 3, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "NL": { "name": "Netherlands", "years": 2, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "Disputed; check current case law." },
-    "BE": { "name": "Belgium", "years": 1, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "AT": { "name": "Austria", "years": 3, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "PL": { "name": "Poland", "years": 1, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "DK": { "name": "Denmark", "years": 3, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "SE": { "name": "Sweden", "years": 10, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "NO": { "name": "Norway", "years": 3, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" },
-    "CH": { "name": "Switzerland", "years": 10, "startsFrom": "flight_date", "verified": false, "source": null, "notes": "" }
+    "GB-ENG": {
+      "name": "England and Wales",
+      "years": 6,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://www.caa.co.uk/air-passengers/travel-problems-and-rights/flight-delays-and-cancellations/delays/",
+      "notes": "UK CAA: six years from the incident to go to court in England and Wales (Limitation Act 1980).",
+      "confidence": "high"
+    },
+    "GB-SCT": {
+      "name": "Scotland",
+      "years": 5,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://www.caa.co.uk/air-passengers/travel-problems-and-rights/flight-delays-and-cancellations/delays/",
+      "notes": "UK CAA: five years in Scotland (Prescription and Limitation (Scotland) Act 1973).",
+      "confidence": "high"
+    },
+    "GB-NIR": {
+      "name": "Northern Ireland",
+      "years": 6,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://claimcompass.eu/blog/time-limit-flight-compensation-claim",
+      "notes": "Six years under the Limitation (Northern Ireland) Order 1989; found only in secondary sources, not on an official page.",
+      "confidence": "medium"
+    },
+    "IE": {
+      "name": "Ireland",
+      "years": 6,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://www.citizensinformation.ie/en/travel-and-recreation/air-travel/compensation-for-overbooked-and-delayed-flights/",
+      "notes": "Six years for contract claims (Statute of Limitations 1957). Official Irish pages don't state the EU261 period explicitly; the 2-year Montreal limit they mention is for damages, not EU261 compensation.",
+      "confidence": "medium"
+    },
+    "DE": {
+      "name": "Germany",
+      "years": 3,
+      "startsFrom": "end_of_year",
+      "verified": false,
+      "source": "https://www.verbraucherzentrale.de/wissen/reise-mobilitaet/unterwegs-sein/faq-zu-fluggastrechten-alles-wichtige-rund-ums-thema-39125",
+      "notes": "Verbraucherzentrale: regular 3-year period from the end of the year of the flight (BGB §§195, 199); BGH X ZR 62/23 confirms it also for package holidays.",
+      "confidence": "high"
+    },
+    "FR": {
+      "name": "France",
+      "years": 5,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://www.economie.gouv.fr/particuliers/voyager-et-se-deplacer/vol-annule-ou-retarde-quels-sont-vos-droits",
+      "notes": "French government: five years from the incident (Code civil art. 2224), confirmed by Cour de cassation, 10 Oct 2019 (no. 18-20.491). A DGCCRF page still mentions 2 years for delays (Montreal); the Cour de cassation applies 5.",
+      "confidence": "high"
+    },
+    "ES": {
+      "name": "Spain",
+      "years": 5,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://www.seguridadaerea.gob.es/en/preguntas-frecuentes-derechos-pasajeros",
+      "notes": "AESA: five years from the flight date to claim from the airline; then one year from that claim to go to AESA's ADR.",
+      "confidence": "high"
+    },
+    "IT": {
+      "name": "Italy",
+      "years": 10,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://giuricivile.it/prescrizione-compensazione-pecuniaria-trasporto-aereo/",
+      "notes": "Unsettled. Cassazione ord. 4427/2024 excluded the 2-year Montreal period but didn't set one; courts apply 6 months (Codice della navigazione art. 418), 1 year (c.c. art. 2951) or 10 years (c.c. art. 2946). Do not display; tell Italian claimants to act fast.",
+      "confidence": "low"
+    },
+    "PT": {
+      "name": "Portugal",
+      "years": 3,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://curia.europa.eu/jcms/jcms/P_93813/it",
+      "notes": "No official Portuguese source found. Three years (Código Civil art. 498) is reported in secondary sources only.",
+      "confidence": "low"
+    },
+    "NL": {
+      "name": "Netherlands",
+      "years": 2,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://www.eccnederland.nl/en/check-your-rights/travelling-eu/what-are-my-rights-if-my-flight-delayed",
+      "notes": "Unsettled in the sources found: 2 years (Montreal by analogy) vs 5 years (BW art. 3:307). Do not display without legal advice.",
+      "confidence": "low"
+    },
+    "BE": {
+      "name": "Belgium",
+      "years": 1,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://www.jubel.be/fr/annulation-ou-retard-important-de-votre-vol-vous-devez-introduire-votre-action-dans-lannee/",
+      "notes": "One year for actions under a passenger transport contract (Code de droit économique); the shortest in Europe. A 2022 bill to extend it to 3 years was not found to be adopted. A claim to the airline does not necessarily stop the clock.",
+      "confidence": "high"
+    },
+    "AT": {
+      "name": "Austria",
+      "years": 3,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://europakonsument.at/",
+      "notes": "Three years (ABGB §1489) per general sources; no OGH decision or official Austrian statement found.",
+      "confidence": "medium"
+    },
+    "PL": {
+      "name": "Poland",
+      "years": 1,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://czasopismo.legeartis.org/2017/03/przedawnienie-odszkodowania-odwolany-lot/",
+      "notes": "Polish Supreme Court resolution III CZP 111/16 (17 March 2017): EU261 Art. 7 claims prescribe after one year (Kodeks cywilny art. 778).",
+      "confidence": "high"
+    },
+    "DK": {
+      "name": "Denmark",
+      "years": 3,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://lex.dk/flypassagerers_rettigheder",
+      "notes": "Three years under the general Limitation Act (forældelsesloven); only secondary sources found.",
+      "confidence": "medium"
+    },
+    "SE": {
+      "name": "Sweden",
+      "years": 10,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://lagen.nu/dom/nja/2018s127",
+      "notes": "Ten years (Preskriptionslagen 1981:130, applied by ARN). BUT the Supreme Court (NJA 2018 s. 127) requires notifying the airline within a reasonable time; within 2 months of the trip is always in time. Needs a notice warning before display.",
+      "confidence": "high"
+    },
+    "NO": {
+      "name": "Norway",
+      "years": 3,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://www.domstol.no/globalassets/upload/hret/avgjorelser/2024/juni/hr-2024-1200-a.pdf",
+      "notes": "Supreme Court HR-2024-1200-A: the Limitation Act (foreldelsesloven) applies, i.e. the general 3-year period (§2), not the Aviation Act.",
+      "confidence": "high"
+    },
+    "CH": {
+      "name": "Switzerland",
+      "years": 10,
+      "startsFrom": "flight_date",
+      "verified": false,
+      "source": "https://www.bazl.admin.ch/de/fluggastrechte",
+      "notes": "Unknown: no Swiss source on the period (10 years under OR art. 127 is only an assumption). Swiss courts also treat delay compensation differently. Do not display.",
+      "confidence": "low"
+    }
   }
 }
