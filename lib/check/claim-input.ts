@@ -2,6 +2,7 @@
 import { getAirport } from "../airports";
 import { getAirline } from "../airlines";
 import { regions } from "../rules/config";
+import { pickJurisdiction } from "../rules/deadlines";
 import type { ClaimInput, Disruption } from "../rules/eligibility";
 import type { CarrierChoice, CarrierRegion, CheckAnswers } from "./answers";
 
@@ -50,6 +51,7 @@ export function toClaimInput(a: CheckAnswers, today: string): ClaimInput | null 
     disruption: toDisruption(a),
     reason: a.reason,
     passengers: a.passengers,
+    jurisdiction: pickJurisdiction([departure, arrival]),
     today,
   };
 }

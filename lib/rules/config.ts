@@ -1,4 +1,5 @@
 import deadlinesJson from "./config/deadlines.json";
+import jurisdictionsJson from "./config/jurisdictions.json";
 import extraordinaryJson from "./config/extraordinary.json";
 import regionsJson from "./config/regions.json";
 import rulesetsJson from "./config/rulesets.json";
@@ -23,7 +24,14 @@ export interface DeadlineEntry {
   source: string | null;
   /** Strength of the sources found (research aid only; display depends on `verified`). */
   confidence?: "high" | "medium" | "low";
+  /** The passenger must also notify the airline within this many months of the flight. */
+  noticeMonths?: number;
   notes: string;
+}
+
+export interface JurisdictionsConfig {
+  gbDefault: string;
+  gbAirports: Record<string, string[]>;
 }
 
 export interface DeadlinesConfig {
@@ -35,6 +43,7 @@ export const regions: RegionsConfig = regionsJson;
 export const rulesets = rulesetsJson.rulesets as Ruleset[];
 export const reasons = extraordinaryJson.reasons as Record<string, ReasonConfig>;
 export const deadlines = deadlinesJson as DeadlinesConfig;
+export const jurisdictions: JurisdictionsConfig = jurisdictionsJson;
 
 export function countriesFor(groupNames: string[], config: RegionsConfig = regions): Set<string> {
   const countries = new Set<string>();

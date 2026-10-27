@@ -303,9 +303,14 @@ describe("passengers and totals", () => {
 });
 
 describe("deadline passthrough", () => {
-  it("attaches the deadline lookup but keeps it hidden while unverified", () => {
+  it("attaches the deadline for the jurisdiction", () => {
     const result = assessClaim(claim("LHR", "JFK", CARRIER.britishAirways, delay(5), { jurisdiction: "GB-ENG", today: "2026-10-22" }));
-    expect(result.deadline).toEqual({ status: "unverified", jurisdiction: "GB-ENG" });
+    expect(result.deadline).toMatchObject({ status: "verified", jurisdiction: "GB-ENG", deadline: "2032-06-15" });
+  });
+
+  it("keeps unverified jurisdictions hidden", () => {
+    const result = assessClaim(claim("LHR", "JFK", CARRIER.britishAirways, delay(5), { jurisdiction: "IT", today: "2026-10-22" }));
+    expect(result.deadline).toEqual({ status: "unverified", jurisdiction: "IT" });
   });
 
   it("is null without a jurisdiction", () => {

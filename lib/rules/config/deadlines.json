@@ -1,12 +1,12 @@
 {
-  "$comment": "Limitation periods for bringing a compensation claim, by jurisdiction. EVERY entry must be checked by a human (with source) before launch. Entries with verified=false are never shown to users. startsFrom: flight_date = the period runs from the flight date; end_of_year = from 31 December of the year of the flight. confidence: strength of the sources found in October 2026 research (high = official body or supreme court; medium = statute by general rule, secondary sources; low = unsettled or not found). Research is not legal advice: a lawyer should confirm before setting verified=true.",
+  "$comment": "Limitation periods for bringing a compensation claim, by jurisdiction. EVERY entry must be checked by a human (with source) before launch. Entries with verified=false are never shown to users. startsFrom: flight_date = the period runs from the flight date; end_of_year = from 31 December of the year of the flight. confidence: strength of the sources found in October 2026 research (high = official body or supreme court; medium = statute by general rule, secondary sources; low = unsettled or not found). Research is not legal advice: a lawyer should confirm before setting verified=true. noticeMonths: the passenger must also tell the airline within this many months of the flight (shown as a warning). Verified by the operator on 27 October 2026: GB-ENG, GB-SCT, DE, FR, ES, PL, BE, NO, SE (high-confidence sources).",
   "warnWithinDays": 180,
   "jurisdictions": {
     "GB-ENG": {
       "name": "England and Wales",
       "years": 6,
       "startsFrom": "flight_date",
-      "verified": false,
+      "verified": true,
       "source": "https://www.caa.co.uk/air-passengers/travel-problems-and-rights/flight-delays-and-cancellations/delays/",
       "notes": "UK CAA: six years from the incident to go to court in England and Wales (Limitation Act 1980).",
       "confidence": "high"
@@ -15,7 +15,7 @@
       "name": "Scotland",
       "years": 5,
       "startsFrom": "flight_date",
-      "verified": false,
+      "verified": true,
       "source": "https://www.caa.co.uk/air-passengers/travel-problems-and-rights/flight-delays-and-cancellations/delays/",
       "notes": "UK CAA: five years in Scotland (Prescription and Limitation (Scotland) Act 1973).",
       "confidence": "high"
@@ -42,7 +42,7 @@
       "name": "Germany",
       "years": 3,
       "startsFrom": "end_of_year",
-      "verified": false,
+      "verified": true,
       "source": "https://www.verbraucherzentrale.de/wissen/reise-mobilitaet/unterwegs-sein/faq-zu-fluggastrechten-alles-wichtige-rund-ums-thema-39125",
       "notes": "Verbraucherzentrale: regular 3-year period from the end of the year of the flight (BGB §§195, 199); BGH X ZR 62/23 confirms it also for package holidays.",
       "confidence": "high"
@@ -51,7 +51,7 @@
       "name": "France",
       "years": 5,
       "startsFrom": "flight_date",
-      "verified": false,
+      "verified": true,
       "source": "https://www.economie.gouv.fr/particuliers/voyager-et-se-deplacer/vol-annule-ou-retarde-quels-sont-vos-droits",
       "notes": "French government: five years from the incident (Code civil art. 2224), confirmed by Cour de cassation, 10 Oct 2019 (no. 18-20.491). A DGCCRF page still mentions 2 years for delays (Montreal); the Cour de cassation applies 5.",
       "confidence": "high"
@@ -60,7 +60,7 @@
       "name": "Spain",
       "years": 5,
       "startsFrom": "flight_date",
-      "verified": false,
+      "verified": true,
       "source": "https://www.seguridadaerea.gob.es/en/preguntas-frecuentes-derechos-pasajeros",
       "notes": "AESA: five years from the flight date to claim from the airline; then one year from that claim to go to AESA's ADR.",
       "confidence": "high"
@@ -96,7 +96,7 @@
       "name": "Belgium",
       "years": 1,
       "startsFrom": "flight_date",
-      "verified": false,
+      "verified": true,
       "source": "https://www.jubel.be/fr/annulation-ou-retard-important-de-votre-vol-vous-devez-introduire-votre-action-dans-lannee/",
       "notes": "One year for actions under a passenger transport contract (Code de droit économique); the shortest in Europe. A 2022 bill to extend it to 3 years was not found to be adopted. A claim to the airline does not necessarily stop the clock.",
       "confidence": "high"
@@ -114,7 +114,7 @@
       "name": "Poland",
       "years": 1,
       "startsFrom": "flight_date",
-      "verified": false,
+      "verified": true,
       "source": "https://czasopismo.legeartis.org/2017/03/przedawnienie-odszkodowania-odwolany-lot/",
       "notes": "Polish Supreme Court resolution III CZP 111/16 (17 March 2017): EU261 Art. 7 claims prescribe after one year (Kodeks cywilny art. 778).",
       "confidence": "high"
@@ -132,16 +132,17 @@
       "name": "Sweden",
       "years": 10,
       "startsFrom": "flight_date",
-      "verified": false,
+      "verified": true,
       "source": "https://lagen.nu/dom/nja/2018s127",
       "notes": "Ten years (Preskriptionslagen 1981:130, applied by ARN). BUT the Supreme Court (NJA 2018 s. 127) requires notifying the airline within a reasonable time; within 2 months of the trip is always in time. Needs a notice warning before display.",
-      "confidence": "high"
+      "confidence": "high",
+      "noticeMonths": 2
     },
     "NO": {
       "name": "Norway",
       "years": 3,
       "startsFrom": "flight_date",
-      "verified": false,
+      "verified": true,
       "source": "https://www.domstol.no/globalassets/upload/hret/avgjorelser/2024/juni/hr-2024-1200-a.pdf",
       "notes": "Supreme Court HR-2024-1200-A: the Limitation Act (foreldelsesloven) applies, i.e. the general 3-year period (§2), not the Aviation Act.",
       "confidence": "high"

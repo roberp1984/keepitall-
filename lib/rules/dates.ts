@@ -33,6 +33,16 @@ export function addYears(value: string, years: number): string {
   return formatIsoDate(new Date(Date.UTC(y, m, Math.min(date.getUTCDate(), lastDay))));
 }
 
+/** Adds whole months; the day is clamped to the end of shorter months. */
+export function addMonths(value: string, months: number): string {
+  const date = parseIsoDate(value);
+  const total = date.getUTCMonth() + months;
+  const y = date.getUTCFullYear() + Math.floor(total / 12);
+  const m = ((total % 12) + 12) % 12;
+  const lastDay = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  return formatIsoDate(new Date(Date.UTC(y, m, Math.min(date.getUTCDate(), lastDay))));
+}
+
 export function daysBetween(from: string, to: string): number {
   return Math.round((parseIsoDate(to).getTime() - parseIsoDate(from).getTime()) / MS_PER_DAY);
 }

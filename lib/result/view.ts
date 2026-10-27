@@ -97,10 +97,19 @@ export function presentAssessment(a: Assessment, ctx: ResultContext): ResultView
     notes: a.codes.map((c) => noteFor(c, a, ruleset)).filter((n): n is string => n !== null),
     deadline: isDisplayable(a.deadline)
       ? {
-          text: a.deadline.expired
-            ? `The time limit to claim in ${a.deadline.name} may have passed (${formatDate(a.deadline.deadline)}).`
-            : `You have until ${formatDate(a.deadline.deadline)} to bring a claim in ${a.deadline.name}.`,
-          warn: a.deadline.warn || a.deadline.expired,
+          text: [
+            a.deadline.expired
+              ? `The time limit to claim in ${a.deadline.name} may have passed (${formatDate(a.deadline.deadline)}).`
+              : `You have until ${formatDate(a.deadline.deadline)} to bring a claim in ${a.deadline.name}.`,
+            a.deadline.notice && !a.deadline.expired
+              ? a.deadline.notice.passed
+                ? `Courts in ${a.deadline.name} expect you to tell the airline within a reasonable time (${a.deadline.notice.months} months is always in time). Send your claim as soon as you can.`
+                : `Important: tell the airline in writing by ${formatDate(a.deadline.notice.by)} (within ${a.deadline.notice.months} months of your flight), or you may lose your right to compensation.`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" "),
+          warn: a.deadline.warn || a.deadline.expired || Boolean(a.deadline.notice && !a.deadline.notice.passed),
         }
       : null,
     pack: null,

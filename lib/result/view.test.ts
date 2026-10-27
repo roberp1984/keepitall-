@@ -69,7 +69,21 @@ describe("presentAssessment", () => {
   });
 
   it("hides unverified deadlines", () => {
-    const a = assessClaim(claim("LHR", "JFK", CARRIER.britishAirways, delay(5), { jurisdiction: "GB-ENG", today: "2026-10-22" }));
+    const a = assessClaim(claim("LHR", "JFK", CARRIER.britishAirways, delay(5), { jurisdiction: "IT", today: "2026-10-22" }));
     expect(presentAssessment(a, ctx).deadline).toBeNull();
+  });
+
+  it("shows verified deadlines", () => {
+    const a = assessClaim(claim("LHR", "JFK", CARRIER.britishAirways, delay(5), { jurisdiction: "GB-ENG", today: "2026-10-22" }));
+    expect(presentAssessment(a, ctx).deadline).toEqual({ text: "You have until 15 June 2032 to bring a claim in England and Wales.", warn: false });
+  });
+
+  it("adds Sweden's notice requirement, and softens it once two months have passed", () => {
+    const soon = assessClaim(claim("ARN", "LHR", CARRIER.britishAirways, delay(5), { jurisdiction: "SE", flightDate: "2026-10-01", today: "2026-10-22" }));
+    const view = presentAssessment(soon, ctx).deadline!;
+    expect(view.text).toContain("tell the airline in writing by 1 December 2026 (within 2 months of your flight)");
+    expect(view.warn).toBe(true);
+    const late = assessClaim(claim("ARN", "LHR", CARRIER.britishAirways, delay(5), { jurisdiction: "SE", flightDate: "2026-10-01", today: "2027-01-10" }));
+    expect(presentAssessment(late, ctx).deadline!.text).toContain("2 months is always in time");
   });
 });

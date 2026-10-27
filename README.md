@@ -87,7 +87,7 @@ Check a deployment with `CRON_SECRET=… npm run setup:check -- https://your-sit
 
 Nothing below is shown to users until marked verified, but launch depends on it:
 
-- [ ] **Limitation periods** — `lib/rules/config/deadlines.json`: researched with sources and confidence (Oct 2026), all `verified: false`. See [`docs/claim-deadlines.md`](docs/claim-deadlines.md).
+- [ ] **Limitation periods** — `lib/rules/config/deadlines.json`: 9 verified (Oct 2026); IE, GB-NIR, AT, DK need a lawyer; IT, NL, CH, PT unsettled. See [`docs/claim-deadlines.md`](docs/claim-deadlines.md).
 - [x] **Airline claim form URLs** — `data/airlines.json`: 29 of 30 verified on 27 Oct 2026 (Turkish Airlines has no EU261 form). Re-check periodically with [`docs/airline-claim-links.md`](docs/airline-claim-links.md).
 - [ ] **Enforcement bodies and ADR schemes** — `data/enforcement-bodies.json` (URLs for FR and GR missing; ADR membership is airline-specific).
 - [ ] **Case-law references** in `lib/rules/config/extraordinary.json` and `lib/letters/citations.ts` (Sturgeon, Nelson, Wallentin-Hermann, etc.).

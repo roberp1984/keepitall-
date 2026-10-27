@@ -1,0 +1,47 @@
+{
+  "$comment": "Which deadlines.json entry applies to an airport. UK airports default to England and Wales; airports in Scotland and Northern Ireland are listed by IATA code. Other airports use their country code.",
+  "gbDefault": "GB-ENG",
+  "gbAirports": {
+    "GB-SCT": [
+      "ABZ",
+      "ADX",
+      "BEB",
+      "BRR",
+      "CAL",
+      "COL",
+      "CSA",
+      "DND",
+      "EDI",
+      "EOI",
+      "FIE",
+      "FLH",
+      "FOA",
+      "GLA",
+      "ILY",
+      "INV",
+      "KOI",
+      "LMO",
+      "LSI",
+      "LWK",
+      "NDY",
+      "NRL",
+      "OBN",
+      "PIK",
+      "PPW",
+      "PSL",
+      "SKL",
+      "SOY",
+      "SYY",
+      "TRE",
+      "WHS",
+      "WIC",
+      "WRY"
+    ],
+    "GB-NIR": [
+      "BFS",
+      "BHD",
+      "ENK",
+      "LDY"
+    ]
+  }
+}
