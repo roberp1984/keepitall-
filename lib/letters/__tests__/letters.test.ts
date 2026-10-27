@@ -218,5 +218,15 @@ describe("buildClaimPack", () => {
     const airline = { ...getAirline("british-airways")!, verified: true, claimFormUrl: "https://example.com/claim" };
     const pack = await buildClaimPack(facts, { scopeBasis: "departure", airline });
     expect(pack.howToSend[0]).toContain("https://example.com/claim");
+    expect(pack.howToSend[1]).toBe(airline.claimNotes);
+  });
+
+  it("keeps unverified claim links and notes out of the pack", async () => {
+    const airline = getAirline("british-airways")!;
+    expect(airline.claimFormUrl).toMatch(/^https:\/\//);
+    expect(airline.verified).toBe(false);
+    const pack = await buildClaimPack(ukLongHaulFacts(), { scopeBasis: "departure", airline });
+    expect(pack.howToSend.join(" ")).not.toContain(airline.claimFormUrl!);
+    expect(pack.howToSend.join(" ")).not.toContain(airline.claimNotes);
   });
 });

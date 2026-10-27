@@ -1,5 +1,5 @@
 {
-  "$comment": "Initial list: the largest carriers serving the UK/EU (not yet ranked by delay data). country = state that licensed the carrier. isEU = EU/EEA/CH carrier (EU261 inbound definition); isUK = UK-licensed. Scope logic uses `country`. claimFormUrl / claimsEmail are left null until a human finds and verifies them; nothing with verified=false is shown to users.",
+  "$comment": "Initial list: the largest carriers serving the UK/EU (not yet ranked by delay data). country = state that licensed the carrier. isEU = EU/EEA/CH carrier (EU261 inbound definition); isUK = UK-licensed. Scope logic uses `country`. claimFormUrl values were found on each airline's official site (October 2026) and must be checked by a human before setting verified=true; nothing with verified=false is shown to users. claimNotes: how to use that airline's claim route; shown only with a verified link.",
   "airlines": [
     {
       "slug": "ryanair",
@@ -9,9 +9,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.ryanair.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://eu261claims.ryanair.com/",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Official EU261 compensation and expense form. Covers flights from the last 6 months; older flights go through Ryanair's help centre contact form.",
       "notes": ""
     },
     {
@@ -22,9 +23,10 @@
       "isEU": false,
       "isUK": true,
       "website": "https://www.ryanair.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://eu261claims.ryanair.com/",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Same Ryanair EU261/UK261 claim form as Ryanair DAC.",
       "notes": "Operates some UK-based Ryanair flights; check the operating carrier on the booking."
     },
     {
@@ -35,9 +37,10 @@
       "isEU": false,
       "isUK": true,
       "website": "https://www.easyjet.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.easyjet.com/en/claim/EU261",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Official easyJet EU261/UK261 claim form. Details can't be changed after submitting.",
       "notes": "easyJet UK. Flights sold as easyJet may be operated by easyJet Europe (EC) or easyJet Switzerland."
     },
     {
@@ -48,9 +51,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.easyjet.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.easyjet.com/en/claim/EU261",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Same easyJet claim form.",
       "notes": "Austrian-licensed easyJet subsidiary."
     },
     {
@@ -61,9 +65,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://wizzair.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.wizzair.com/en-gb/help-centre/my-wizz-account/claims-and-compensation/ec261-regulation",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Wizz Air help centre page; claims are filed on the official claim platform (claim.wizzair.com). Wizz replies within 30 days; its 120% credit offer is not cash compensation.",
       "notes": ""
     },
     {
@@ -74,9 +79,10 @@
       "isEU": false,
       "isUK": true,
       "website": "https://wizzair.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.wizzair.com/en-gb/help-centre/my-wizz-account/claims-and-compensation/ec261-regulation",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Same Wizz Air claim process as Wizz Air Hungary.",
       "notes": ""
     },
     {
@@ -87,9 +93,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.lufthansa.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.lufthansa.com/de/en/support/fast-compensation",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Lufthansa online application for compensation and reimbursement of costs (EU261 Art. 7).",
       "notes": ""
     },
     {
@@ -100,9 +107,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.eurowings.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.eurowings.com/en/faq/flight-disruptions/claims-and-compensation.html",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Eurowings claims FAQ linking to its online compensation claim tool (flight number, date, booking code, then bank details).",
       "notes": ""
     },
     {
@@ -113,9 +121,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.airfrance.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://wwws.airfrance.fr/en/information/legal/reclamation",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Air France claims page. Ask for cash, not the voucher Air France offers.",
       "notes": ""
     },
     {
@@ -126,9 +135,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.klm.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.klm.com/information/refund-compensation/compensation",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "KLM compensation page with its online claim route.",
       "notes": ""
     },
     {
@@ -139,9 +149,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.transavia.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.transavia.com/help/en-eu/contact-complaints/contact/submit-claim",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Transavia contact form; choose the category \"Flight disruptions\".",
       "notes": "Transavia France operates as TO (FR)."
     },
     {
@@ -152,9 +163,10 @@
       "isEU": false,
       "isUK": true,
       "website": "https://www.britishairways.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.britishairways.com/content/information/delayed-or-cancelled-flights",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "BA delays and cancellations page linking to the Customer Relations online compensation claim form.",
       "notes": ""
     },
     {
@@ -165,9 +177,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.vueling.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://help.vueling.com/hc/en-gb/articles/19798807271441-Claim-and-refunds",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Vueling help centre claims page (compensation for overbooking, delay or cancellation).",
       "notes": ""
     },
     {
@@ -178,9 +191,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.iberia.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.iberia.com/ie/claims-receipts/",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Iberia claims page with separate forms for delayed and cancelled flights; needs booking code and ticket number.",
       "notes": ""
     },
     {
@@ -191,9 +205,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.aireuropa.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://customerservice.aireuropa.com/complaints/es/es/complaints-compliments/claims-form",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Air Europa customer service claims form (Spanish-language page; language selector on the site).",
       "notes": ""
     },
     {
@@ -204,9 +219,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.flytap.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.flytap.com/en-nl/help/requests-complaints",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "TAP requests and complaints page leading to its online complaints form.",
       "notes": ""
     },
     {
@@ -217,9 +233,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.ita-airways.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.ita-airways.com/us/en/support/flight-disruptions",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "ITA Airways flight disruptions page; claims go through its online contact form.",
       "notes": ""
     },
     {
@@ -230,9 +247,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.flysas.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.flysas.com/gb-en/customer-service/contact/forms/claim-eu261",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "SAS dedicated EU261 claim form (delays, cancellations, denied boarding, downgrades).",
       "notes": "Verify the licensing state of the operating SAS entity (Denmark/Norway/Sweden); all are EU/EEA."
     },
     {
@@ -243,9 +261,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.norwegian.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.norwegian.com/us/help-contact/claims/",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Norwegian claims page (delay or cancellation). Norwegian asks passengers to claim directly and allow 28 days.",
       "notes": "Some flights are operated by Norwegian Air Sweden (D8, SE)."
     },
     {
@@ -256,9 +275,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.finnair.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.finnair.com/gb-en/customer-care-and-contact-information/contact-and-request-forms/feedback-and-compensation",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Finnair feedback and compensation page: \"Submit a claim request for the flight disruptions\". Finnair's page asks for claims within two months of the flight; the legal limitation period is longer.",
       "notes": ""
     },
     {
@@ -269,9 +289,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.aerlingus.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.aerlingus.com/support/customer-care/requests-and-enquiries/",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Aer Lingus requests page; compensation goes through the Post Travel Enquiry form (expenses have a separate form).",
       "notes": "Aer Lingus UK (UK-licensed) operates some Belfast/Manchester routes."
     },
     {
@@ -282,9 +303,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.swiss.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.swiss.com/us/en/customer-support/compensation-check",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "SWISS online application for EU261 compensation and expenses.",
       "notes": "Swiss carrier: EU261 applies via the EU–Switzerland air transport agreement. Not an 'EU carrier' for UK261 inbound."
     },
     {
@@ -295,9 +317,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.austrian.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.austrian.com/at/en/fly/flight-information/flight-disruptions",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Austrian flight disruptions page linking to the application for compensation and reimbursement of costs.",
       "notes": ""
     },
     {
@@ -308,9 +331,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.brusselsairlines.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.brusselsairlines.com/fr/en/contact/feedback/general/delays-and-cancellation",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Brussels Airlines delays and cancellation contact form. Its conditions of carriage claim a one-year limit for court action under Belgian law.",
       "notes": ""
     },
     {
@@ -321,9 +345,10 @@
       "isEU": false,
       "isUK": true,
       "website": "https://www.jet2.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.jet2.com/en/delays-and-disruptions",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Jet2 online claim form for delays, cancellations and expenses; one form per disrupted flight.",
       "notes": ""
     },
     {
@@ -334,9 +359,10 @@
       "isEU": false,
       "isUK": true,
       "website": "https://www.tui.co.uk",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.tui.co.uk/destinations/contact-us/flight-delays",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "TUI flight delay claim web form (flight numbers starting TOM/BY/OR). ADR: AviationADR.",
       "notes": "Package holidays may also carry Package Travel Regulations rights (out of scope)."
     },
     {
@@ -347,9 +373,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.volotea.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.volotea.com/en/complaints/",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Volotea online complaints form; one claim per passenger.",
       "notes": ""
     },
     {
@@ -360,9 +387,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://www.lot.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://www.lot.com/pl/en/help-center/contact/forms/form-claim-after-departure",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "LOT \"Claim after departure\" online form; LOT replies within 30 days.",
       "notes": ""
     },
     {
@@ -373,9 +401,10 @@
       "isEU": true,
       "isUK": false,
       "website": "https://en.aegeanair.com",
-      "claimFormUrl": null,
+      "claimFormUrl": "https://en.aegeanair.com/contact/Form/",
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "Aegean contact form; choose the category \"Passenger rights (EC) 261/2004\".",
       "notes": ""
     },
     {
@@ -389,6 +418,7 @@
       "claimFormUrl": null,
       "claimsEmail": null,
       "verified": false,
+      "claimNotes": "No dedicated EU261 claim form found on turkishairlines.com. Write to Turkish Airlines customer relations; escalate to the enforcement body of the departure country.",
       "notes": "Non-EU/UK carrier: covered only on departures from the EU/UK."
     }
   ]

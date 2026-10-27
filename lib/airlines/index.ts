@@ -13,6 +13,8 @@ export interface Airline {
   claimsEmail: string | null;
   /** A human has checked claimFormUrl / claimsEmail. Unverified contact details are never shown. */
   verified: boolean;
+  /** How to use this airline's claim route. Like the link, only shown once verified. */
+  claimNotes: string;
   notes: string;
 }
 

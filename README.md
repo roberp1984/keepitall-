@@ -88,7 +88,7 @@ Check a deployment with `CRON_SECRET=… npm run setup:check -- https://your-sit
 Nothing below is shown to users until marked verified, but launch depends on it:
 
 - [ ] **Limitation periods** — `lib/rules/config/deadlines.json` (all `verified: false`).
-- [ ] **Airline claim form URLs / emails** — `data/airlines.json` (all `null`, `verified: false`).
+- [ ] **Airline claim form URLs** — `data/airlines.json`: links found on official sites (29 of 30), all `verified: false`. Check them with [`docs/airline-claim-links.md`](docs/airline-claim-links.md).
 - [ ] **Enforcement bodies and ADR schemes** — `data/enforcement-bodies.json` (URLs for FR and GR missing; ADR membership is airline-specific).
 - [ ] **Case-law references** in `lib/rules/config/extraordinary.json` and `lib/letters/citations.ts` (Sturgeon, Nelson, Wallentin-Hermann, etc.).
 - [ ] **Legal pages** — `app/legal/{terms,privacy,refunds}` are complete but need a lawyer's review.

@@ -32,6 +32,7 @@ export function howToSend(f: ClaimFacts, airline: Airline | undefined, body: Enf
   const steps: string[] = [];
   if (airline?.verified && airline.claimFormUrl) {
     steps.push(`Submit your claim using ${possessive(airline.name)} compensation claim form: ${airline.claimFormUrl}. Paste the letter into the form or attach it as a PDF.`);
+    if (airline.claimNotes) steps.push(airline.claimNotes);
   } else if (airline?.verified && airline.claimsEmail) {
     steps.push(`Email the letter to ${airline.name} at ${airline.claimsEmail}, with the PDF attached.`);
   } else {
